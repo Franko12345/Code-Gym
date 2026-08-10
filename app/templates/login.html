@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{# M1.T4 — /login + /logout routes.
+
+   Minimal login form. Per ADR-0003, no signup link — the only
+   way to get an account is via the admin CLI. Per
+   security-guardian:
+
+   * form action is POST (credentials never go on the URL)
+   * generic error message — the same text is shown for both
+     "unknown email" and "wrong password" so an attacker
+     cannot enumerate registered emails
+   * no client-side JS — credentials are POSTed, the server
+     sets the cookie, browser follows the 302
+
+   No "remember me" (YAGNI per ticket constraints). The form
+   pre-fills the email on a failed attempt so the user doesn't
+   have to retype it. #}
+
+{% block content %}
+  <section class="login-card">
+    <h1>Login</h1>
+
+    {% if error %}
+      <p class="login-error" role="alert">{{ error }}</p>
+    {% endif %}
+
+    <form method="post" action="/login" class="login-form">
+      <label class="login-label" for="login-email">E-mail</label>
+      <input
+        id="login-email"
+        class="login-input"
+        type="email"
+        name="email"
+        value="{{ email | e }}"
+        autocomplete="username"
+        required
+        autofocus
+      />
+
+      <label class="login-label" for="login-password">Senha</label>
+      <input
+        id="login-password"
+        class="login-input"
+        type="password"
+        name="password"
+        autocomplete="current-password"
+        required
+      />
+
+      <button type="submit" class="login-submit">Entrar</button>
+    </form>
+  </section>
+{% endblock %}
