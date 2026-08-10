@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{# M4.T5 (ticket #17) — fallback page rendered by the
+   ``GET /problems/{slug}`` route when the slug doesn't match
+   any row in the ``problems`` table. Returns 404. #}
+
+{% block content %}
+  <section class="problem-not-found">
+    <h1>Problema não encontrado</h1>
+    <p class="content-subtitle">
+      Nenhum problema com slug
+      <code>{{ slug }}</code> existe no Code-Gym.
+    </p>
+    <p>
+      <a href="/roadmap">← Voltar para o roadmap</a>
+    </p>
+  </section>
+{% endblock %}
