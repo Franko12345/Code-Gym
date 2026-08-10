@@ -20,6 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.auth.middleware import AuthMiddleware
+from app.auth.routes import router as auth_router
 from app.roadmap.routes import router as roadmap_router
 
 APP_DIR = Path(__file__).resolve().parent
@@ -45,6 +46,10 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 # M3.T2 — attach the roadmap router. The router is responsible for
 # its own auth gate (302 → /login if no session cookie).
 app.include_router(roadmap_router)
+
+# M1.T4 — attach the auth router (/login + /logout). Login is the
+# only public auth surface (no /signup, per ADR-0003).
+app.include_router(auth_router)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
