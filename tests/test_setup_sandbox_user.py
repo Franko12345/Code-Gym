@@ -167,16 +167,3 @@ def test_sandbox_user_uid_is_32768() -> None:
     assert uid == 32768, f"sandbox UID must be 32768, got {uid}"
 
 
-@pytest.mark.skipif(
-    not _sandbox_user_exists(),
-    reason="`sandbox` user is not provisioned on this host",
-)
-def test_sandbox_user_is_system_account() -> None:
-    """The `sandbox` user must be a system account (UID < 1000 on Debian/Ubuntu)."""
-    result = subprocess.run(
-        ["id", "-u", "sandbox"], capture_output=True, text=True, check=True
-    )
-    uid = int(result.stdout.strip())
-    assert uid < 1000, (
-        f"sandbox must be a system account (uid < 1000), got uid={uid}"
-    )
