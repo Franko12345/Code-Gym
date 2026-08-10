@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{# M3.T1 — minimal child template that overrides the `content`
+   block. Used by the smoke route so tests can assert the layout
+   actually renders the child body. Real pages (login.html,
+   roadmap.html, profile.html) will extend base.html the same way. #}
+
+{% block content %}
+  <h1>Code-Gym</h1>
+  <p>M3.T1 smoke page — sidebar + dark theme live.</p>
+{% endblock %}
