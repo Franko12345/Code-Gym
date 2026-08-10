@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{# M3.T3 — Public profile (ticket #12).
+
+   Renders one card per problem across ALL topics, coloured by the
+   viewed user's best verdict for that problem:
+
+     * green (solved)      — any AC submission
+     * red   (failed)      — any WA/RE/TLE submission, no AC
+     * yellow (error)      — has submissions but no AC and no
+                             WA/RE/TLE (currently only CE)
+     * gray  (untouched)   — no submissions
+
+   ELO is stored in the DB but NOT visualized (per MVP scope).
+   Topic filtering is NOT in MVP — the page shows everything.
+
+   The viewer (request.state.user) is plumbed through as ``viewer``;
+   today it's unused but the seam stays stable for the future
+   "edit my profile" affordance. #}
+
+{% block content %}
+  {% if profile_user is none %}
+    {# 404 path — unknown username. Render inside base.html so the
+       sidebar stays consistent. #}
+    <h1>Perfil não encontrado</h1>
+    <p class="content-subtitle">
+      Nenhum usuário com username
+      <code>@{{ missing_username }}</code> existe no Code-Gym.
+    </p>
+  {% else %}
+    <header class="profile-header">
+      <h1 class="profile-display-name">@{{ profile_user.display_name }}</h1>
+      <p class="profile-email">{{ profile_user.email }}</p>
+      {# ELO is intentionally NOT rendered — see ADR / MVP scope. #}
+    </header>
+
+    {% if not topics %}
+      <p class="empty-state">
+        Nenhum problema cadastrado ainda — semeie
+        <code>data/seed/topics.yaml</code> + <code>obi_problems.yaml</code>
+        via <code>python -m scripts.seed --file ...</code>.
+      </p>
+    {% else %}
+      {% for topic in topics %}
+        <section class="profile-topic">
+          <h2 class="profile-topic-title">{{ topic.topic_name }}</h2>
+          <ul class="problem-grid">
+            {% for problem in topic.problems %}
+              <li class="problem-grid-item"
+                  data-status="{{ problem.status }}"
+                  data-verdict="{{ problem.best_verdict }}">
+                <a class="problem-card problem-card--{{ problem.status }}"
+                   href="#"
+                   title="{% if problem.best_verdict %}{{ problem.best_verdict }} — {{ problem.problem_title }}{% else %}{{ problem.problem_title }} (não tentado){% endif %}"
+                   aria-label="{{ problem.problem_title }} — {{ problem.status }}">
+                  <span class="problem-card-title">{{ problem.problem_title }}</span>
+                  <span class="problem-card-meta">
+                    <span class="problem-card-difficulty" aria-label="difficulty {{ problem.difficulty }}">
+                      {% for i in range(problem.difficulty) %}★{% endfor %}{% for i in range(5 - problem.difficulty) %}☆{% endfor %}
+                    </span>
+                    {% if problem.status == 'solved' %}
+                      <span class="problem-card-badge solved" aria-label="resolvido">AC</span>
+                    {% elif problem.status == 'failed' %}
+                      <span class="problem-card-badge status-failed" aria-label="tentativa com erro">{{ problem.best_verdict }}</span>
+                    {% elif problem.status == 'error' %}
+                      <span class="problem-card-badge status-error" aria-label="compilação falhou">{{ problem.best_verdict }}</span>
+                    {% endif %}
+                  </span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+{% endblock %}

@@ -7,6 +7,7 @@ M3.T1 — minimal stub. Provides:
 - HTMX 2.x loaded from jsDelivr CDN with a real SRI hash (ADR-0004)
 
 M3.T2 — `/roadmap` router attached (see `app.roadmap.routes`).
+M3.T3 — `/u/{username}` profile router attached (see `app.profile.routes`).
 
 No DB writes yet — those land in M1 and M4 follow-ups. This file is
 the seam where future modules attach.
@@ -20,6 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.auth.middleware import AuthMiddleware
+from app.profile.routes import router as profile_router
 from app.roadmap.routes import router as roadmap_router
 
 APP_DIR = Path(__file__).resolve().parent
@@ -45,6 +47,12 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 # M3.T2 — attach the roadmap router. The router is responsible for
 # its own auth gate (302 → /login if no session cookie).
 app.include_router(roadmap_router)
+
+# M3.T3 — attach the public profile router. The profile page is
+# public (no login gate); the route reads request.state.user only to
+# expose viewer context to the template (future "is this my profile?"
+# affordance).
+app.include_router(profile_router)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
