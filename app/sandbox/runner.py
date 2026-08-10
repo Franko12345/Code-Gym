@@ -45,8 +45,6 @@ from pathlib import Path
 from typing import NamedTuple
 
 from app.sandbox.languages import (
-    CPP_COMPILER,
-    PYTHON_INTERPRETER,
     build_cpp_cmd,
     build_python_cmd,
 )
@@ -209,6 +207,7 @@ def _run_python(
         try:
             proc = subprocess.run(  # noqa: S603 — argv list, shell=False
                 argv,
+                input=stdin_bytes,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -301,6 +300,7 @@ def _run_cpp(
         try:
             proc = subprocess.run(  # noqa: S603 — argv list, shell=False
                 [str(bin_path)],
+                input=stdin_bytes,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,

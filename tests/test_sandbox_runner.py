@@ -246,3 +246,21 @@ def test_scenario_escape_attempt_does_not_write_outside_sandbox() -> None:
         f"escape attempt succeeded — {escape_path} was created on host "
         f"(verdict={v.verdict}, stderr={v.stderr!r})"
     )
+
+
+@_runner_skip
+def test_scenario_ac_python_echoes_non_empty_stdin() -> None:
+    """AC regression lock: program that reads stdin and echoes it must
+    receive the test_case_stdin bytes (not see an immediate EOF).
+
+    Bug history: ``stdin_bytes`` was computed but never passed to
+    ``subprocess.run`` (only ``stdin=subprocess.PIPE`` was set), so
+    the child process always saw EOF and stdin-based problems were
+    silently judged WA. This test pins the fix.
+    """
+    code = "print(input(), end='')"
+    v = run(code, "python", test_case_stdin="hello\n", test_case_expected="hello\n")
+    assert v.verdict == "AC", (
+        f"expected AC (stdin should reach child), got {v.verdict} "
+        f"(stderr={v.stderr!r})"
+    )
