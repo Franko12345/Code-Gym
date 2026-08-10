@@ -33,6 +33,7 @@ Constraints honoured
 
 from __future__ import annotations
 
+import asyncio
 from typing import Iterable, Optional
 
 from fastapi import APIRouter, Form, Request
@@ -128,7 +129,14 @@ async def submit_solution(
     # The service returns None for an unknown slug; we render the
     # 404 ourselves so the test can pin the status code without
     # depending on FastAPI's default exception handler.
-    result: Optional[SubmissionResult] = judge_submission(
+    #
+    # The runner is blocking (subprocess.run + UID drop + RLIMITs +
+    # 2.5s timeout). Calling it directly here would freeze the
+    # FastAPI event loop for the duration of every submission.
+    # ``asyncio.to_thread`` runs it in the default thread pool so
+    # other requests keep flowing.
+    result: Optional[SubmissionResult] = await asyncio.to_thread(
+        judge_submission,
         user_id=user.id,
         problem_slug=slug,
         code=code,

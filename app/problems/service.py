@@ -6,12 +6,12 @@ The seam between the HTTP route (``app.problems.routes``) and:
 * the **ELO module** (``app.elo.elo_delta`` \u2014 trivial v0.1.0 formula)
 * the **database** (insert into ``submissions``, update ``users.elo``)
 
-The service is **synchronous from the route's POV** but the runner
-is blocking (it forks a subprocess). To avoid blocking the FastAPI
-event loop, the route calls ``judge_submission`` inside
-``asyncio.to_thread``. We do NOT spawn a thread per test case
-internally; one thread per submission is enough for the MVP and
-keeps the stop-on-first-failure semantics obvious.
+The service is synchronous. The runner is blocking (subprocess.run
++ UID drop + 2.5s timeout), so the route is responsible for off-
+loading ``judge_submission`` to a worker thread via
+``asyncio.to_thread`` \u2014 not this module. We do NOT spawn a thread
+per test case internally; one thread per submission is enough for
+the MVP and keeps the stop-on-first-failure semantics obvious.
 
 Stop-on-first-failure contract
 ------------------------------
@@ -214,10 +214,8 @@ def judge_submission(
         user_id: the authenticated user's id.
         problem_slug: URL slug of the problem.
         code: source code submitted by the user.
-        language: ``'python'`` or ``'cpp'`` (must be in
-            ``ACCEPTED_LANGUAGES``; the route should have validated
-            this before calling, but we re-raise ``ValueError`` if
-            not \u2014 a defense-in-depth).
+        language: ``'python'`` or ``'cpp'`` (the route validates
+            against ``ACCEPTED_LANGUAGES`` before calling).
         db_path: optional DB override for tests; defaults to the
             module's ``DEFAULT_DB_PATH``.
 
@@ -225,17 +223,9 @@ def judge_submission(
         A ``SubmissionResult`` describing the final verdict and
         aggregate ``runtime_ms``. Returns ``None`` if the problem
         slug is unknown \u2014 the route turns that into a 404.
-
-    Raises:
-        ValueError: ``language`` is not in ``ACCEPTED_LANGUAGES``.
-            (Programmer error: the route must validate first.)
     """
-    if language not in ACCEPTED_LANGUAGES:
-        raise ValueError(
-            f"unsupported language {language!r}; "
-            f"ADR-0005 MVP accepts only {sorted(ACCEPTED_LANGUAGES)}"
-        )
-
+    # ``language`` is validated by the route before we get here;
+    # we trust the caller to keep the contract.
     problem_id = get_problem_id_by_slug(problem_slug, db_path)
     if problem_id is None:
         return None
@@ -282,8 +272,9 @@ def judge_submission(
 __all__ = (
     "ACCEPTED_LANGUAGES",
     "SubmissionResult",
-    "get_problem_id_by_slug",
     "judge_submission",
-    "list_test_cases",
     "run",
 )
+# ``get_problem_id_by_slug`` and ``list_test_cases`` are module-
+# private helpers used only by ``judge_submission`` and are
+# deliberately excluded from ``__all__``.
