@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}{{ page_title }} — Code-Gym{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+
+  {# HTMX 2.x — single global include (ADR-0004). SRI hash verified
+     against the published 2.0.0 minified bundle on jsDelivr.
+     No JS framework; this is the only script on every page. #}
+  <script
+    src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.0/dist/htmx.min.js"
+    integrity="sha384-wS5l5IKJBvK6sPTKa2WZ1js3d947pvWXbPJ1OmWfEuxLgeHcEbjUUA5i9V5ZkpCw"
+    crossorigin="anonymous"
+    defer></script>
+</head>
+<body>
+  <aside class="sidebar" aria-label="Primary navigation">
+    <div class="sidebar-brand">
+      <span class="sidebar-brand-mark">CG</span>
+      <span class="sidebar-brand-text">Code-Gym</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="sidebar-link" href="/roadmap">Roadmap</a>
+      <a class="sidebar-link" href="/problems">Problems</a>
+      <a class="sidebar-link" href="/profile">Profile</a>
+      {# Logout is POST-only per the brief; render as a form so a
+         plain GET can never accidentally log the user out. #}
+      <form class="sidebar-logout" method="post" action="/logout">
+        <button type="submit" class="sidebar-link sidebar-link-button">Logout</button>
+      </form>
+    </nav>
+  </aside>
+
+  <main class="content">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

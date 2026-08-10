@@ -10,6 +10,7 @@ dependencies = [
     "python-multipart",
     "bcrypt",
     "pyjwt",
+    "pyyaml",
 ]
 
 [project.optional-dependencies]
@@ -26,3 +27,4 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]

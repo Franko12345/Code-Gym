@@ -27,8 +27,9 @@ from app.db import DEFAULT_DB_PATH, init_db
 
 
 def test_default_db_path_is_data_code_gym_db() -> None:
-    """The default DB path must be <repo>/data/code_gym.db (ADR-0001)."""
-    assert DEFAULT_DB_PATH == Path("data/code_gym.db")
+    """The default DB path must resolve to <repo>/data/code_gym.db (ADR-0001)."""
+    from app.db import REPO_ROOT
+    assert DEFAULT_DB_PATH == REPO_ROOT / "data" / "code_gym.db"
 
 
 # ---------------------------------------------------------------------------

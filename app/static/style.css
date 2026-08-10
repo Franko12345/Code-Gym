@@ -1,0 +1,167 @@
+/* Code-Gym base stylesheet — M3.T1
+ *
+ * NeetCode-inspired dark palette (per the M3.T1 brief):
+ *   bg       #0d1117   page background
+ *   card     #161b22   sidebar + content cards
+ *   solved   #3fb950   "solved" accent (used later by problem grids)
+ *
+ * No CSS framework. Vanilla CSS only. No Tailwind, no Bootstrap.
+ *
+ * Layout: fixed left sidebar (~200px) + scrolling main content.
+ * No mobile breakpoints yet (per ADR-0004 — desktop-first MVP).
+ */
+
+:root {
+  --color-bg: #0d1117;
+  --color-card: #161b22;
+  --color-card-border: #30363d;
+  --color-solved: #3fb950;
+  --color-text: #c9d1d9;
+  --color-text-muted: #8b949e;
+  --color-link: #58a6ff;
+  --color-link-hover: #79c0ff;
+  --sidebar-width: 200px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sidebar                                                             */
+/* ------------------------------------------------------------------ */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--color-card);
+  border-right: 1px solid var(--color-card-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem 1rem;
+  border-bottom: 1px solid var(--color-card-border);
+  font-weight: 600;
+}
+
+.sidebar-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--color-solved);
+  color: var(--color-bg);
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-brand-text {
+  color: var(--color-text);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.5rem;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 0.6rem 1rem;
+  color: var(--color-text);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  background: transparent;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-link-hover);
+  border-left-color: var(--color-link);
+}
+
+.sidebar-link:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: -2px;
+}
+
+.sidebar-logout {
+  margin: 0;
+  padding: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Main content                                                        */
+/* ------------------------------------------------------------------ */
+
+.content {
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+  min-height: 100%;
+  background: var(--color-bg);
+}
+
+.content h1,
+.content h2,
+.content h3 {
+  color: var(--color-text);
+  margin-top: 0;
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------ */
+/* Utility — "solved" accent (used by M3.T2/T3 problem grids)          */
+/* ------------------------------------------------------------------ */
+
+.solved {
+  color: var(--color-solved);
+}
+
+.solved-badge {
+  display: inline-block;
+  background: var(--color-solved);
+  color: var(--color-bg);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
