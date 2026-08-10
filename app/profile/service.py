@@ -26,20 +26,22 @@ Best-verdict classification (per (user, problem)):
 The verdict sets are kept as module constants so future additions
 (e.g. ``PE`` for presentation error) are a one-line change.
 
-A single SQL pass computes both the problem list AND each user's
-best verdict via conditional aggregation. This avoids an N+1 query
-that would otherwise walk every submission per problem.
+SQL strategy: a single GROUP BY pass — O(1) queries regardless of
+submission count. For each problem we compute three booleans via
+``MAX(CASE WHEN ...)`` conditional aggregates, then derive the bucket
+(solved/failed/error/untouched) in Python. The ``best_verdict`` text
+is also pulled from the same row via conditional ``MIN(verdict)``
+aggregates (one per verdict class). No correlated subqueries, no N+1.
 """
 
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Union
 
 from app.db import DEFAULT_DB_PATH, get_connection
-
 
 # ---------------------------------------------------------------------------
 # Verdict sets (the colour rule)
@@ -119,7 +121,7 @@ class ProblemStatus:
 
 def get_profile_user_by_username(
     username_or_id: str | int,
-    db_path: Union[str, Path, None] = None,
+    db_path: str | Path | None = None,
 ) -> ProfileUser | None:
     """Look up a user by display_name (the username shown in /u/{name})
     OR by integer id. Returns ``None`` if the user doesn't exist.
@@ -170,7 +172,7 @@ def get_profile_user_by_username(
 
 def list_problem_statuses_for_user(
     user_id: int,
-    db_path: Union[str, Path, None] = None,
+    db_path: str | Path | None = None,
 ) -> list[ProblemStatus]:
     """Return one ``ProblemStatus`` per problem in the DB, with the
     user's best-verdict classification for that problem.
@@ -180,14 +182,12 @@ def list_problem_statuses_for_user(
     roadmap visual order (OBI F1 → F2 → F3 → UNI, easier-first within
     each topic). Empty topics contribute no rows.
 
-    SQL strategy: a single LEFT JOIN with conditional aggregation.
-    For each problem we compute:
-        * has_ac:   count of submissions with verdict='AC'      (>0 → solved)
-        * has_fail: count of submissions with verdict in {WA,RE,TLE}
-                                                              (>0 → failed)
-        * has_any:  count of submissions (any verdict)        (>0 → attempted)
-    then post-process in Python to apply the precedence rule
-    (solved > failed > error > untouched).
+    SQL strategy: a single LEFT JOIN + GROUP BY pass. For each
+    problem we compute three booleans via ``MAX(CASE WHEN ...)``
+    conditional aggregates (and three verdict-class strings via
+    ``MIN(CASE WHEN ... THEN verdict END)`` for the badge text), then
+    derive the bucket (solved/failed/error/untouched) in Python. No
+    correlated subqueries, no N+1.
     """
     path = str(db_path) if db_path is not None else str(DEFAULT_DB_PATH)
     # Build the IN clause for FAILED_VERDICTS — kept as a tuple bound
@@ -203,24 +203,22 @@ def list_problem_statuses_for_user(
             t.slug            AS topic_slug,
             t.name            AS topic_name,
             t.order_index     AS topic_order_index,
-            -- best_verdict = 'AC' if any AC, else first failed if any
-            -- failed, else first non-empty of (any verdict) if any
-            -- submission, else NULL. We pick the first attempt (lowest
-            -- attempt_n) for "best" so the tooltip is stable.
-            CASE
-                WHEN SUM(CASE WHEN s.verdict = 'AC'              THEN 1 ELSE 0 END) > 0
-                    THEN 'AC'
-                WHEN SUM(CASE WHEN s.verdict IN ({failed_clause}) THEN 1 ELSE 0 END) > 0
-                    THEN (SELECT verdict FROM submissions
-                          WHERE user_id = ? AND problem_id = p.id
-                            AND verdict IN ({failed_clause})
-                          ORDER BY attempt_n ASC LIMIT 1)
-                WHEN SUM(CASE WHEN s.verdict IS NOT NULL          THEN 1 ELSE 0 END) > 0
-                    THEN (SELECT verdict FROM submissions
-                          WHERE user_id = ? AND problem_id = p.id
-                          ORDER BY attempt_n ASC LIMIT 1)
-                ELSE NULL
-            END              AS best_verdict
+            -- has_ever_ac: 1 iff any submission has verdict = 'AC'
+            MAX(CASE WHEN s.verdict = 'AC'              THEN 1 ELSE 0 END) AS has_ever_ac,
+            -- has_failed_attempt: 1 iff any submission has verdict in {{WA,RE,TLE}}
+            MAX(CASE WHEN s.verdict IN ({failed_clause}) THEN 1 ELSE 0 END) AS has_failed_attempt,
+            -- has_other: 1 iff any submission has a verdict outside the
+            -- AC/{{WA,RE,TLE}} set (today only CE — code didn't run).
+            MAX(CASE WHEN s.verdict IS NOT NULL
+                      AND s.verdict NOT IN ('AC', {failed_clause}) THEN 1 ELSE 0 END) AS has_other,
+            -- best_verdict strings: MIN(verdict) picks any representative
+            -- verdict of the class (lexicographic, but stable). The bucket
+            -- is what matters semantically; the badge text just shows the
+            -- class label. NULL when the class has no submissions.
+            MIN(CASE WHEN s.verdict = 'AC'              THEN s.verdict END) AS ac_text,
+            MIN(CASE WHEN s.verdict IN ({failed_clause}) THEN s.verdict END) AS failed_text,
+            MIN(CASE WHEN s.verdict IS NOT NULL
+                      AND s.verdict NOT IN ('AC', {failed_clause}) THEN s.verdict END) AS other_text
         FROM problems p
         JOIN topics t ON t.id = p.topic_id
         LEFT JOIN submissions s
@@ -230,11 +228,13 @@ def list_problem_statuses_for_user(
         ORDER BY t.order_index ASC, t.slug ASC,
                  p.difficulty ASC, p.id ASC
     """
-    params: list[Union[str, int]] = [
+    params: list[str | int] = [
+        # 3× FAILED_VERDICTS (one per IN clause: has_failed_attempt,
+        # has_other, failed_text, other_text — has_ever_ac doesn't bind).
         *FAILED_VERDICTS,
-        user_id,
         *FAILED_VERDICTS,
-        user_id,
+        *FAILED_VERDICTS,
+        *FAILED_VERDICTS,
         user_id,
     ]
     with get_connection(path) as conn:
@@ -242,8 +242,16 @@ def list_problem_statuses_for_user(
 
     out: list[ProblemStatus] = []
     for r in rows:
-        best = r["best_verdict"]
-        best_str = str(best) if best is not None else ""
+        # Pull the best_verdict from the same row using the boolean
+        # flags. Precedence: AC > failed (WA/RE/TLE) > other (CE) > "".
+        if r["has_ever_ac"]:
+            best_str = str(r["ac_text"])
+        elif r["has_failed_attempt"]:
+            best_str = str(r["failed_text"])
+        elif r["has_other"]:
+            best_str = str(r["other_text"])
+        else:
+            best_str = ""
         out.append(
             ProblemStatus(
                 problem_id=int(r["problem_id"]),
@@ -273,14 +281,8 @@ def _classify(best_verdict: str) -> str:
 
 
 __all__: Iterable[str] = (
-    "ALL_ATTEMPT_VERDICTS",
-    "FAILED_VERDICTS",
-    "ProfileUser",
     "ProblemStatus",
-    "STATUS_ERROR",
-    "STATUS_FAILED",
-    "STATUS_SOLVED",
-    "STATUS_UNTOUCHED",
+    "ProfileUser",
     "get_profile_user_by_username",
     "list_problem_statuses_for_user",
 )

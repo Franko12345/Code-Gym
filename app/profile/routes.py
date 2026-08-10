@@ -23,20 +23,17 @@ exception handler (which would emit an ugly HTML traceback).
 
 from __future__ import annotations
 
-from typing import Iterable
-
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from app.db import DEFAULT_DB_PATH
 from app.profile.service import (
-    ProfileUser,
     ProblemStatus,
+    ProfileUser,
     get_profile_user_by_username,
     list_problem_statuses_for_user,
 )
-
 
 # ---------------------------------------------------------------------------
 # Templates
@@ -65,13 +62,6 @@ def _templates() -> Jinja2Templates:
 # ---------------------------------------------------------------------------
 
 router = APIRouter()
-
-
-# Login route — same target the roadmap uses when a viewer happens to
-# be unauthenticated AND we want to nudge them to sign up. Not used by
-# the profile route itself (which is public) but kept as a documented
-# constant for future "follow this user" affordances.
-LOGIN_PATH: str = "/login"
 
 
 @router.get("/u/{username}", response_class=HTMLResponse)
@@ -170,8 +160,4 @@ def _not_found(request: Request, username: str) -> HTMLResponse:
     )
 
 
-__all__: Iterable[str] = (
-    "DEFAULT_DB_PATH",
-    "LOGIN_PATH",
-    "router",
-)
+__all__ = ("router",)
