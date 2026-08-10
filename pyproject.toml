@@ -1,0 +1,28 @@
+[project]
+name = "code-gym"
+version = "0.1.0"
+description = "Personal DSI training app for OBI + maratona"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "jinja2",
+    "python-multipart",
+    "bcrypt",
+    "pyjwt",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "httpx",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "httpx",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
