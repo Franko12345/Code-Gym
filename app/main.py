@@ -23,6 +23,7 @@ from fastapi.templating import Jinja2Templates
 from app.auth.middleware import AuthMiddleware
 from app.auth.routes import router as auth_router
 from app.profile.routes import router as profile_router
+from app.problems.routes import router as problems_router
 from app.roadmap.routes import router as roadmap_router
 
 APP_DIR = Path(__file__).resolve().parent
@@ -58,6 +59,13 @@ app.include_router(profile_router)
 # M1.T4 — attach the auth router (/login + /logout). Login is the
 # only public auth surface (no /signup, per ADR-0003).
 app.include_router(auth_router)
+
+# M4.T4 — attach the problems router (POST /problems/{slug}/submit).
+# The route is auth-gated (302 → /login when no session cookie), and
+# only accepts C++ / Python per ADR-0005. User code is judged by the
+# sandbox runner (UID-isolated + RLIMIT, ADR-0002) — never eval()'d
+# in this process.
+app.include_router(problems_router)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
