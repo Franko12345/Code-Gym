@@ -1,0 +1,308 @@
+{% extends "base.html" %}
+
+{# M4.T5 (ticket #17) — problem detail page.
+
+   Layout:
+   * left column:  problem title, topic, difficulty, statement,
+                   examples block
+   * right column: CodeMirror editor (CDN, SRI sha384), language
+                   <select>, hidden <textarea name="code"> filled
+                   by the editor on submit, submit button
+
+   ADR-0004 compliance: this is the ONE page with non-HTMX JS.
+   CodeMirror is loaded from jsDelivr with **real sha384 SRI
+   hashes** (verified against the package metadata; if you bump
+   the version, re-fetch and re-compute via
+   ``openssl dgst -sha384 -binary file | openssl base64 -A``).
+   The vanilla JS adapter below is the entire client-side
+   behaviour — load/save localStorage, swap mode, copy to
+   textarea. No framework.
+
+   Why CodeMirror 5 (not 6):
+   CodeMirror 6 is ESM-only and shipped as `dist/index.js`; the
+   `+esm` jsDelivr endpoint generates a bundle on the fly per
+   request and jsDelivr explicitly forbids SRI on dynamic files
+   ("Do NOT use SRI with dynamically generated files!" — see the
+   comment in the +esm response body). The M3.T1 base.html
+   already establishes the "real SRI for every CDN script"
+   pattern (HTMX). To honour that pattern without weakening it,
+   we use the final v5 release (5.65.21) which ships immutable
+   CDN assets under /mode/<lang>/<lang>.js and /theme/<name>.css.
+   C++ uses the `clike` mode configured with the C++ MIME type
+   at runtime — CM5 has no dedicated `mode/cpp.js`.
+
+   localStorage contract:
+   key = ``cg-code-{slug}-{lang}`` (e.g. ``cg-code-soma-de-digitos-python``)
+   The slug is interpolated server-side and surfaced both as an
+   HTML comment and as a ``data-storage-key`` attribute on the
+   editor container, so a reader can find the schema without
+   grepping the JS. #}
+
+{% block content %}
+
+  {# localStorage key prefix — server-side interpolated, so a reader
+     grepping for ``cg-code-`` in the rendered HTML finds this
+     template's contract pin. #}
+  <!-- localStorage key prefix: cg-code-{{ problem.slug }}- -->
+
+  <article
+    class="problem-page"
+    data-storage-key="cg-code-{{ problem.slug }}-{lang}"
+    data-problem-slug="{{ problem.slug }}"
+  >
+    <header class="problem-header">
+      <p class="problem-topic">
+        <a href="/roadmap">{{ problem.topic_name }}</a>
+      </p>
+      <h1 class="problem-title">{{ problem.title }}</h1>
+      <p class="problem-difficulty" aria-label="Dificuldade">
+        {% for i in range(problem.difficulty) %}★{% endfor %}{% for i in range(5 - problem.difficulty) %}☆{% endfor %}
+      </p>
+    </header>
+
+    <div class="problem-layout">
+      {# ----- LEFT: statement + examples --------------------------- #}
+      <section class="problem-statement" aria-label="Enunciado">
+        <div class="problem-statement-body">
+          <p>{{ problem.statement_md }}</p>
+        </div>
+
+        {% if problem.examples %}
+          <h2 class="problem-examples-title">Exemplos</h2>
+          <ol class="problem-examples">
+            {% for ex in problem.examples %}
+              <li class="problem-example">
+                {% if ex.input is defined %}
+                  <div class="problem-example-io">
+                    <span class="problem-example-label">Entrada</span>
+                    <pre class="problem-example-block"><code>{{ ex.input }}</code></pre>
+                  </div>
+                {% endif %}
+                {% if ex.output is defined %}
+                  <div class="problem-example-io">
+                    <span class="problem-example-label">Saída</span>
+                    <pre class="problem-example-block"><code>{{ ex.output }}</code></pre>
+                  </div>
+                {% endif %}
+                {% if ex.explanation %}
+                  <p class="problem-example-explanation">{{ ex.explanation }}</p>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ol>
+        {% endif %}
+      </section>
+
+      {# ----- RIGHT: editor + controls ---------------------------- #}
+      <section class="problem-editor-pane" aria-label="Editor">
+        <form
+          class="problem-form"
+          method="post"
+          action="/problems/{{ problem.slug }}/submit"
+        >
+          <div class="problem-controls">
+            <label class="problem-language-label" for="cg-language">
+              Linguagem
+            </label>
+            <select
+              id="cg-language"
+              class="problem-language"
+              name="language"
+            >
+              {% for lang in accepted_languages %}
+                <option
+                  value="{{ lang }}"
+                  {% if lang == default_language %}selected{% endif %}
+                >{{ lang }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          {# The CodeMirror host. The hidden <textarea> is what the
+             vanilla JS fills on submit so the M4.T4 route binds
+             ``code`` from the form payload (a normal HTML form
+             POST, not XHR). #}
+          <textarea
+            id="cg-code-source"
+            class="problem-code-source"
+            name="code"
+            aria-label="Código fonte"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+          ></textarea>
+
+          <div class="problem-actions">
+            <button type="submit" class="problem-submit">
+              Submeter
+            </button>
+          </div>
+
+          {# HTMX swap target for the M4.T4 verdict partial. The
+             submit form posts normally (the JS copies CM into the
+             hidden textarea) and we let HTMX take it from there —
+             the response HTML replaces this div's content. #}
+          <div
+            id="cg-submission-result"
+            class="problem-submission-result"
+            hx-target="#cg-submission-result"
+            hx-swap="innerHTML"
+          ></div>
+        </form>
+      </section>
+    </div>
+  </article>
+
+  {# ----------------------------------------------------------- #}
+  {# CodeMirror 5 — three scripts + one theme stylesheet.        #}
+  {# Each carries a real sha384 SRI hash verified against the     #}
+  {# jsDelivr package metadata (see routes.py docstring for the  #}
+  {# how-to). Order matters: core first, then mode, then theme.  #}
+  {# ----------------------------------------------------------- #}
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/codemirror@5.65.21/theme/dracula.css"
+    integrity="sha384-4nPcZ9BUNd2pikADn94mWdadMsOyXpkVAFqWnjahi480YflRZuJeuU0m7+/GxJ8d"
+    crossorigin="anonymous"
+  >
+  <script
+    src="https://cdn.jsdelivr.net/npm/codemirror@5.65.21/lib/codemirror.js"
+    integrity="sha384-YbR2n4zUtdAz2YuqQsJFpjrgTl5SPEm0NG+y8/y3R63tAWTA3O7TOyIWyYYcqUqU"
+    crossorigin="anonymous"
+    defer></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/codemirror@5.65.21/mode/python/python.js"
+    integrity="sha384-HcVkwdWB4VAA451RvHXtgHgKx0HvmXKY5p1sOBHIK1IpkZJ4CnOzGULahXqEzcGX"
+    crossorigin="anonymous"
+    defer></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/codemirror@5.65.21/mode/clike/clike.js"
+    integrity="sha384-6meNTZKLR14cC16lK6iD1zsoxAMJ0H5zWwlpcY67QZw1kMCK7ALE1ER8gGhbjx/K"
+    crossorigin="anonymous"
+    defer></script>
+
+  {# ----------------------------------------------------------- #}
+  {# Vanilla JS adapter — the ONLY place with non-HTMX JS.      #}
+  {#                                                            #}
+  {#   1. Init CodeMirror on the hidden textarea, picking the   #}
+  {#      mode that matches the <select> default value.         #}
+  {#   2. Hydrate from localStorage[cg-code-{slug}-{lang}].     #}
+  {#   3. On keyup, debounce 500 ms, then save.                 #}
+  {#   4. On language change, swap CM mode + load the saved      #}
+  {#      buffer for that language (different key).              #}
+  {#   5. On submit, copy CM content into the <textarea>.       #}
+  {#                                                            #}
+  {# No globals leak (IIFE). Uses the global ``CodeMirror``      #}
+  {# exposed by the CDN script above.                           #}
+  {# ----------------------------------------------------------- #}
+  <script>
+  (function () {
+    'use strict';
+
+    var slug = {{ problem.slug | tojson }};
+    var storageKey = function (lang) { return 'cg-code-' + slug + '-' + lang; };
+    var debounceMs = 500;
+
+    // MIME types per language — CodeMirror 5 uses these to load
+    // the right tokenizer. CM5 has no dedicated cpp.js; clike.js
+    // with text/x-c++src is the documented recipe.
+    var modes = {
+      python: { mime: 'text/x-python' },
+      cpp:    { mime: 'text/x-c++src' }
+    };
+
+    function debounce(fn, ms) {
+      var t = null;
+      return function () {
+        var args = arguments;
+        clearTimeout(t);
+        t = setTimeout(function () { fn.apply(null, args); }, ms);
+      };
+    }
+
+    function init() {
+      var source = document.getElementById('cg-code-source');
+      var select = document.getElementById('cg-language');
+      if (!source || !select || typeof window.CodeMirror === 'undefined') {
+        // No-JS fallback: the <textarea> is rendered normally and
+        // the form still posts to /submit. Per ADR-0004 this is
+        // acceptable — degraded but functional.
+        return;
+      }
+
+      var lang = select.value;
+      var mode = modes[lang] || modes.python;
+
+      var cm = window.CodeMirror.fromTextArea(source, {
+        mode: mode.mime,
+        lineNumbers: true,
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false,
+        theme: 'dracula',
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        lineWrapping: true
+      });
+
+      // 2. Hydrate from localStorage.
+      try {
+        var saved = window.localStorage.getItem(storageKey(lang));
+        if (saved) { cm.setValue(saved); }
+      } catch (e) { /* private mode / quota: silently degrade */ }
+
+      // 3. Save on change (debounced). CM's ``change`` event fires
+      // on every edit; we coalesce 500 ms of typing into one write.
+      var save = debounce(function () {
+        try {
+          window.localStorage.setItem(storageKey(lang), cm.getValue());
+        } catch (e) { /* ignore quota errors */ }
+      }, debounceMs);
+      cm.on('change', save);
+
+      // 4. Language switch — swap mode + reload saved buffer for
+      // the new language. We DON'T clear the current buffer — the
+      // user might switch back and want their old code.
+      select.addEventListener('change', function () {
+        lang = select.value;
+        var next = modes[lang] || modes.python;
+        cm.setOption('mode', next.mime);
+        var buf = '';
+        try { buf = window.localStorage.getItem(storageKey(lang)) || ''; }
+        catch (e) { buf = ''; }
+        cm.setValue(buf);
+      });
+
+      // 5. On submit, copy CM content back into the <textarea>
+      // so the route's ``Form('code')`` binding has it. We do
+      // this synchronously so the form submission is unaffected
+      // by HTMX or anything else.
+      var form = source.closest('form');
+      if (form) {
+        form.addEventListener('submit', function () {
+          source.value = cm.getValue();
+        });
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+  </script>
+
+  {# HTMX wiring — make the submit form an HTMX form so the verdict
+     partial replaces the result div without a full reload. The JS
+     above already populates the hidden textarea before submit, so
+     the server sees the same payload as a vanilla POST. #}
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('.problem-form');
+    if (form && window.htmx) { window.htmx.process(form); }
+  });
+  </script>
+
+{% endblock %}

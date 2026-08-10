@@ -461,3 +461,218 @@ a:hover {
 .untouched {
   color: var(--color-untouched);
 }
+
+/* ------------------------------------------------------------------ */
+/* Problem page (M4.T5)                                              */
+/*                                                                   */
+/* Two-column layout: statement + examples on the left, CodeMirror   */
+/* editor + language select + submit button on the right. The        */
+/* editor is the one place where the page deviates from "pure HTML +  */
+/* HTMX" (ADR-0004); the layout itself stays vanilla CSS.             */
+/* ------------------------------------------------------------------ */
+
+.problem-page {
+  display: block;
+}
+
+.problem-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-card-border);
+}
+
+.problem-topic {
+  margin: 0 0 0.25rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.problem-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.problem-difficulty {
+  margin: 0.5rem 0 0 0;
+  color: var(--color-link);
+  letter-spacing: 2px;
+  font-size: 0.9rem;
+}
+
+.problem-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  /* Per ADR-0004 the MVP is desktop-first; this breakpoint only
+     prevents the layout from becoming unreadable on a narrow
+     window. A future ticket can own responsive design properly. */
+  .problem-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.problem-statement {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.problem-statement-body p {
+  margin: 0 0 0.75rem 0;
+  line-height: 1.55;
+}
+
+.problem-examples-title {
+  margin: 1.25rem 0 0.5rem 0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+}
+
+.problem-examples {
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+  list-style: decimal;
+}
+
+.problem-example {
+  margin-bottom: 0.75rem;
+}
+
+.problem-example-io {
+  margin: 0.25rem 0;
+}
+
+.problem-example-label {
+  display: inline-block;
+  min-width: 70px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+}
+
+.problem-example-block {
+  margin: 0.15rem 0 0 0;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: ui-monospace, "SFMono-Regular", "Consolas", monospace;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.problem-example-explanation {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.problem-editor-pane {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.problem-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.problem-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.problem-language-label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.problem-language {
+  flex: 0 0 auto;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+}
+
+/* The hidden <textarea name="code"> — CodeMirror replaces this
+ * visually with a .CodeMirror div, but the element still exists
+ * in the DOM so the M4.T4 Form('code') binding sees it on submit.
+ * No-JS fallback: the textarea is visible and functional. */
+.problem-code-source {
+  display: block;
+  width: 100%;
+  min-height: 320px;
+  padding: 0.6rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  font-family: ui-monospace, "SFMono-Regular", "Consolas", monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.problem-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.problem-submit {
+  background: var(--color-solved);
+  color: var(--color-bg);
+  border: none;
+  border-radius: 4px;
+  padding: 0.55rem 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
+
+.problem-submit:hover {
+  filter: brightness(1.08);
+}
+
+.problem-submit:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.problem-submission-result {
+  /* Verdict card lands here as a HTMX swap (innerHTML).
+     The partial (partials/submission_result.html) brings its
+     own classes; this container just provides spacing. */
+  margin-top: 0.5rem;
+}
+
+.problem-not-found {
+  max-width: 480px;
+  margin: 4rem auto;
+  text-align: center;
+}
+
+.problem-not-found h1 {
+  margin-bottom: 0.5rem;
+}
