@@ -134,6 +134,7 @@ dependencies = [
     { name = "jinja2" },
     { name = "pyjwt" },
     { name = "python-multipart" },
+    { name = "pyyaml" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -158,6 +159,7 @@ requires-dist = [
     { name = "pyjwt" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "python-multipart" },
+    { name = "pyyaml" },
     { name = "uvicorn", extras = ["standard"] },
 ]
 provides-extras = ["dev"]
