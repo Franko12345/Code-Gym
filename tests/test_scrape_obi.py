@@ -38,8 +38,13 @@ from scripts.scrape.obi import (
 # ---------------------------------------------------------------------------
 
 
-FIXTURE_INDEX = Path("/tmp/p1.html")  # the /pratique/p1/ index page
-FIXTURE_IDADE = Path("/tmp/p1_idade.html")  # the /pratique/p1/2019/f1/idade/ page
+FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures"
+# Committed alongside the tests (NOT under the gitignored ``data/``) so a
+# clean CI checkout has them. Captured from the live site on 2026-08-10.
+FIXTURE_INDEX = FIXTURE_DIR / "obi-p1-index.html"  # the /pratique/p1/ index page
+FIXTURE_IDADE = (
+    FIXTURE_DIR / "obi-p1-2019-f1-idade.html"
+)  # the /pratique/p1/2019/f1/idade/ page
 
 
 def _file_fetcher(url: str) -> str:
@@ -165,12 +170,8 @@ def test_write_snapshot_is_idempotent(
         ]
     }
     out_dir = tmp_path / "data" / "snapshots"
-    monkeypatch_dir = obi_scrape.REPO_ROOT / "data"  # noqa: F841 — unused
-    # Don't write into the real REPO_ROOT; redirect the helper via patch
-    # below. For this test, we call the lower-level writer directly.
-    path = obi_scrape.OUTPUT_DIR  # may not exist; we override
-
-    # Use the public function but redirect OUTPUT_DIR via monkeypatching.
+    # Write into tmp_path, never the real REPO_ROOT: this test exercises
+    # the lower-level writer directly, so no OUTPUT_DIR patching is needed.
     out_path_1 = out_dir / "obi-2026-08-10.yaml"
     out_path_2 = out_dir / "obi-2026-08-10.yaml"
     out_dir.mkdir(parents=True, exist_ok=True)

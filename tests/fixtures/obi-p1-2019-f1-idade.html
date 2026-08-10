@@ -1,0 +1,1429 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title> Pratique - A idade de Dona Mônica </title>
+
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  
+  <link href="/static/assets/img/favicon.png" rel="icon">
+  <link href="{% static 'assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Jost:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="/static/assets/vendor/aos/aos.css" rel="stylesheet">
+  <link href="/static/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="/static/assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+  <link href="/static/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+  <!--link href="/static/assets/vendor/remixicon/remixicon.css" rel="stylesheet"-->
+  <link href="/static/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="/static/assets/css/weblog.css" rel="stylesheet">
+  <link href="/static/assets/css/accordion.css" rel="stylesheet">
+  <link href="/static/assets/css/calendar.css" rel="stylesheet">
+  <link href="/static/assets/css/style.css" rel="stylesheet">  
+
+  <script src="/static/assets/js/jquery-3.6.0.min.js"></script>
+  
+  
+<script src="/static/assets/js/jquery-3.6.0.min.js"></script>
+<script>
+  var LANGUAGES = {
+    'C++17 / g++': {
+        '.cpp': true,
+        '.cc': true,
+        '.cxx': true,
+        '.c++': true,
+        '.C': true,
+    },
+    'C17 / gcc': {
+        '.c': true,
+    },
+    'Javascript': {
+        '.js': true,
+    },
+    'Java / JDK': {
+        '.java': true,
+    },
+    'Python 3 / CPython': {
+        '.py': true,
+    },
+};
+
+filter_languages = function(options, inputs) {
+    var exts = [];
+    for (var i = 0; i < inputs.length; i++) {
+        exts.push('.' + inputs[i].value.match(/[^.]*$/)[0]);
+    }
+    // Find all languages that should be enabled.
+    var enabled = {};
+    var anyEnabled = false;
+    for (var lang in LANGUAGES) {
+        for (i = 0; i < exts.length; i++) {
+            if (LANGUAGES[lang][exts[i]]) {
+                enabled[lang] = true;
+                anyEnabled = true;
+                break;
+            }
+        }
+    }
+    // If no language matches the extension, enable all and let the user
+    // select.
+    if (!anyEnabled) {
+        options.removeAttr('disabled');
+        return;
+    }
+
+    // Otherwise, disable all languages that do not match the extension.
+    var isSelectedDisabled = false;
+    options.each(function(i, option) {
+        if (enabled[option.value]) {
+            $(option).removeAttr('disabled');
+        } else {
+            $(option).attr('disabled', 'disabled');
+            if (option.selected) {
+                isSelectedDisabled = true;
+            }
+        }
+    });
+    // Else, if the current selected is disabled, select one that is enabled.
+    if (isSelectedDisabled) {
+        for (i = 0; i < options.length; i++) {
+            if ($(options[i]).attr('disabled') != 'disabled') {
+                options[i].selected = true;
+                break;
+            }
+        }
+    }
+};
+</script>
+
+</head>
+
+<body id=""  onload="" class="">
+    
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top header-inner-pages">
+    <div class="container d-flex align-items-center">
+
+      <a href="/" class="me-auto"><img src="/static/assets/img/logo-obi2026.svg" height="40px" alt="logo obi2026"></a>
+
+      <nav id="navbar" class="navbar">
+        <ul>
+	  
+          <li><a class="nav-link" href="/">Início</a></li>
+          <li class="dropdown"><a href="#"><span>Sobre a OBI</span> <i class="bi bi-chevron-down"></i></a>
+            <ul>
+              <li><a href="/info/apresentacao/">Apresentação</a></li>
+              <li><a href="/info/comite/">Comissão Nacional</a></li>
+              <li><a href="/calendario/datas_importantes">Datas Importantes</a></li>
+              <li><a href="/info/regulamento/">Regulamento</a></li>
+              <li class="dropdown"><a href="#"><span>Consultas</span> <i class="bi bi-chevron-right"></i></a>
+		<ul>
+		  <li><a href="/consulta_escolas">Escolas Cadastradas</a></li>
+		  <li><a href="/consulta_competidores">Competidores Inscritos</a></li>
+		</ul>
+	      </li>
+              <li class="dropdown"><a href="#"><span>Como Participar</span> <i class="bi bi-chevron-right"></i></a>
+		<ul>
+		  <li><a href="/info/como_participar_aluno/">Alunos</a></li>
+		  <li><a href="/info/como_participar_escola/">Escolas</a></li>
+		</ul>
+	      </li>
+              <li><a href="/info/competicao_feminina/">Competição Feminina</a></li>
+              <li><a href="/certificados/">Certificados</a></li>
+              <li><a href="/passadas/">Anos Anteriores</a></li>
+              <li><a href="/info/apoios/">Apoios</a></li>
+              <li><a href="/competicoes/">Compet. Internacionais</a></li>
+              <li><a href="/info/cartaz/">Cartaz, Arte e Logotipo</a></li>
+              <li><a href="/info/privacidade/">Privacidade</a></li>
+            </ul>
+          </li>
+          <li class="dropdown"><a href="#"><span>Prepare-se</span> <i class="bi bi-chevron-down"></i></a>
+            <ul>
+              <li><a href="/pratique/">Pratique</a></li>
+              <li><a href="/prepare/estude/">Estude</a></li>
+              <li><a href="/prepare/ementas/">Ementas</a></li>
+              <li><a href="/prepare/aplicativos/">Aplicativos</a></li>
+              <li><a href="/saci">Saci</a></li>
+            </ul>
+          </li>
+          <li><a class="nav-link" href="/calendario/">Calendário</a></li>
+          <li><a class="nav-link" href="/resultados/">Resultados</a></li>
+          <li><a class="nav-link scrollto" href="/noticias/">Notícias</a></li>
+	  
+          <li class="dropdown" ><a href="#"><font color="#ffc438"><b>Entrar</b></font> <i class="bi bi-chevron-down"></i></a>
+            <ul>
+              <li><a href="/compet/">Competidores</a></li>
+              <li><a href="/restrito/">Escolas</a></li>
+	    </ul>
+	  </li>
+	  
+        </ul>
+        <i class="bi bi-list mobile-nav-toggle"></i>
+      </nav><!-- .navbar -->
+    </div>
+  </header><!-- End Header -->
+
+  
+  
+  
+  <main id="main">
+    
+  
+<section id="authenticated" class="authenticated ">
+  <div class="container align-items-center">
+	
+      <div class="not-authenticated">28<sup><u>a</u></sup> Olimpíada Brasileira de Informática</div>
+  </div>
+</section>
+
+  
+<!-- ======= Breadcrumbs ======= -->
+<section id="breadcrumbs" class="breadcrumbs">
+  <div class="container">
+
+    
+    
+    
+    <ol>
+      
+      
+      <li><a href="/">Início</a></li>
+      
+      
+      
+    </ol>
+    
+    <h2>
+  Pratique
+</h2>
+    
+  </div>
+</section><!-- End Breadcrumbs -->
+
+
+  
+  
+<section class="inner-page">
+  <div class="container">
+    <div class="row content">
+      <div class="col-xl-8 col-md-12 align-items-stretch"> 
+	
+<form action="corrige/" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="csrfmiddlewaretoken" value="jAXjtZlptMEzGqSbR2xZHHJ3WkxBfWBM7g3hzP3diD1iaAQABIq7eIr5uNCDbZIG">
+  <fieldset class="border p-2">
+    <legend class="float-none w-auto p-2">Submeta sua solução</legend>
+  <table class="table table-borderless">
+    <tr>
+      <td valign="top">
+	<label for="id_data"><b>Arquivo:</b></label>
+	<input class="form-control" type="file" name="data" id="id_data" required
+	       onchange="filter_languages($(this).parents('form').find('select[name=sub_lang] option'),
+                         $(this).parents('form').find('input[type=file]'))"/>
+      </td>
+      <td>
+	<label for="id_sub_lang"><b>Linguagem:</b></label>
+	<select name="sub_lang" required id="id_sub_lang" class="form-select">
+	  <option value="" selected>Selecione</option>
+          <option value="C++17 / g++">C++17 / g++</option>
+          <option value="C17 / gcc">C17 / gcc</option>
+          <option value="Javascript">Javascript</option>
+          <option value="Java / JDK">Java / JDK</option>
+          <option value="Python 3 / CPython">Python 3 / CPython</option>
+      </select></td>
+      <td align="right" valign="bottom">
+	<button type="submit" class="btn btn-primary">Submete</button>
+      </td>
+    </tr>
+  </table>
+  </fieldset>
+  <input type="hidden" name="problem_request_path" value="/pratique/p1/2019/f1/idade/">
+  <input type="hidden" name="problem_name" value="2019f1p1_idade">
+  <input type="hidden" name="problem_name_full" value="A idade de Dona Mônica">
+<center>
+  <p class="small"><em>Nome do arquivo: <span class="ttt">idade.x</span>,
+      onde <span class="ttt">x</span> deve ser <span class="ttt">c</span>, <span class="ttt">cpp</span>, <span class="ttt">java</span>,
+	    <span class="ttt">js</span> ou <span class="ttt">py</span> </em></p>
+</center>
+</form>
+
+<h1 class="center">A idade de Dona Mônica</h1>
+
+<p>
+Dona Mônica é mãe de três filhos que têm idades diferentes. Ela notou
+que, neste ano, a soma das idades dos seus três filhos é igual à idade
+dela. Neste problema, dada a idade de dona Mônica e as idades de dois
+dos filhos, seu programa deve computar e imprimir a idade do filho
+mais velho.
+
+<p>
+Por exemplo, se sabemos que dona Mônica tem 52 anos e as idades
+conhecidas de dois dos filhos são 14 e 18 anos, então a idade do
+outro filho, que não era conhecida, tem que ser 20 anos, pois a soma
+das três idades tem que ser 52. Portanto, a idade do filho mais
+velho é 20. Em mais um exemplo, se dona Mônica tem 47 anos e as
+idades de dois dos filhos são 21 e 9 anos, então o outro filho tem
+que ter 17 anos e, portanto, a idade do filho mais velho é 21.
+
+<h3>Entrada</h3>
+A primeira linha da entrada contém um inteiro M representando a
+idade de dona Mônica. A segunda linha da entrada contém um inteiro A
+representando a idade de um dos filhos. A terceira linha da entrada
+contém um inteiro B representando a idade de outro filho.
+
+<h3>Saída</h3>
+Seu programa deve imprimir uma linha, contendo um número inteiro,
+representando a idade do filho mais velho de dona Mônica.
+
+<h3>Restrições</h3>
+<ul>
+<li> 40  &leq;  M  &leq;  110
+<li> 1  &leq;  A < M
+<li> 1  &leq;  B < M
+<li> A  &ne;  B
+</ul>
+
+
+<h3>Exemplos</h3>
+<table width="100%" cellspace="2" border="1">
+  <tr>
+    <td valign="top" width="50%">
+      <b>Entrada</b>
+      <pre>
+52
+14
+18
+</pre>
+      </td>
+    <td valign="top" width="50%">
+      <b>Saída</b>
+      <pre>
+20
+	</pre>
+      </td>
+    </tr>
+</table>
+
+<p>&nbsp;</p>
+
+<table width="100%" cellspace="2" border="1">
+  <tr>
+    <td valign="top" width="50%">
+      <b>Entrada</b>
+      <pre>
+47
+21
+9
+</pre>
+      </td>
+    <td valign="top" width="50%">
+      <b>Saída</b>
+      <pre>
+21
+	</pre>
+      </td>
+    </tr>
+</table>
+
+<p>&nbsp;</p>
+
+
+
+  
+      </div>
+      <div class="col-xl-4 col-md-12" data-aos="zoom-in" data-aos-delay="100">
+        <div class="icon-box">
+	  
+
+  
+
+
+  <h5>Tarefas Programação Nível 1</h5>
+
+<div id="accordion" class="accordion">
+  <div class="container">
+    <div class="accordion-list">
+      <ul>
+	
+	
+	
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2021" class="collapsed">2021 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2021" class="collapse level-1-list-2021  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2021-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2021-1" class="collapse show" data-bs-parent=".level-1-list-2021">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f1/tempo/">Tempo de resposta</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f1/torneio/">Torneio de tênis</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f1/zero/">Zero para cancelar</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2021-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2021-2" class="collapse " data-bs-parent=".level-1-list-2021">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f2/calculo/">Cálculo rápido</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f2/tenis/">Duplas de tênis</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f2/lista/">Lista palíndroma</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f2/media/">Média ou mediana</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f2/potencia/">Potência</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f2/recorde/">Recorde</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f2/retangulo/">Retângulo</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f2/robo/">Robô</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2021-3" class="collapsed">
+		  
+		  Fase 3
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2021-3" class="collapse " data-bs-parent=".level-1-list-2021">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f3/casamento/">Casamento de inteiros</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f3/festa/">Festa olímpica</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f3/plano/">Plano de estacionamento</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2021/f3/sapo/">Sr. Sapo</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2020" class="collapsed">2020 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2020" class="collapse level-1-list-2020  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2020-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2020-1" class="collapse show" data-bs-parent=".level-1-list-2020">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f1/tesouro/">Divisão do Tesouro</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f1/emoticons/">Emoticons</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f1/fissura/">Fissura Perigosa</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f1/pandemia/">Pandemia</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f1/piloto/">Piloto Automático</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f1/3por2/">Três por Dois</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2020-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2020-2" class="collapse " data-bs-parent=".level-1-list-2020">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f2/formiga/">Dona Formiga</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f2/lesma/">Dona Lesma</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f2/estrada/">Estrada</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2020-3" class="collapsed">
+		  
+		  Fase 3
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2020-3" class="collapse " data-bs-parent=".level-1-list-2020">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f3/jogo/">Jogo do Preto e Branco</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f3/rede/">Rede Social</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f3/torre/">Torre de dados</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2020/f3/trem/">Trem da mina</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2019" class="collapsed">2019 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2019" class="collapse level-1-list-2019  show" data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2019-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2019-1" class="collapse show" data-bs-parent=".level-1-list-2019">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f1/idade/">A idade de Dona Mônica</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f1/amigos/">Distância entre amigos</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f1/jogo/">Jogo de Dominós</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f1/nota/">Nota cortada</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2019-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2019-2" class="collapse " data-bs-parent=".level-1-list-2019">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f2/matriz/">Matriz super-legal</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f2/nota/">Nota esquecida</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f2/ponto/">Ponto do meio</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2019-3" class="collapsed">
+		  
+		  Fase 3
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2019-3" class="collapse " data-bs-parent=".level-1-list-2019">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f3/colecao/">Coleção de Upas</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f3/linhas/">Linhas de Ônibus</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f3/manchas/">Manchas de pele</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2019/f3/parcelamento/">Parcelamento sem juros</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2018" class="collapsed">2018 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2018" class="collapse level-1-list-2018  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2018-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2018-1" class="collapse show" data-bs-parent=".level-1-list-2018">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f1/escadinha/">Escadinha</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f1/piramide/">Pirâmide</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f1/xadrez/">Xadrez</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2018-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2018-2" class="collapse " data-bs-parent=".level-1-list-2018">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f2/campeonato/">Campeonato</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f2/capsulas/">Cápsulas</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f2/relogios/">Relógios</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2018-3" class="collapsed">
+		  
+		  Fase 3
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2018-3" class="collapse " data-bs-parent=".level-1-list-2018">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f3/batalha/">Batalha</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f3/gato/">Pulo do Gato</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f3/recibo/">Recibo de Compra</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2018/f3/troca/">Troca</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2017" class="collapsed">2017 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2017" class="collapse level-1-list-2017  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2017-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2017-1" class="collapse show" data-bs-parent=".level-1-list-2017">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2017/f1/cofre/">Segredo do Cofre</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2017/f1/teleferico/">Teleférico</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2017-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2017-2" class="collapse " data-bs-parent=".level-1-list-2017">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2017/f2/castelos/">Castelos da Nlogônia</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2017/f2/tabuleiro/">Jogo de Tabuleiro</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2017/f2/montanha/">Montanha</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2017-3" class="collapsed">
+		  
+		  Fase 3
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2017-3" class="collapse " data-bs-parent=".level-1-list-2017">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2017/f3/bits/">Bits</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2017/f3/gomoku/">Gomoku</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2017/f3/visita/">Visita entre cidades</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2017/f3/zip/">Zip</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2016" class="collapsed">2016 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2016" class="collapse level-1-list-2016  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2016-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2016-1" class="collapse show" data-bs-parent=".level-1-list-2016">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2016/f1/clube/">Clube dos Cinco</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2016/f1/tacos-bilhar/">Tacos de bilhar</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2016-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2016-2" class="collapse " data-bs-parent=".level-1-list-2016">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2016/f2/arco/">Arco e flecha</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2016/f2/caminhos-reino/">Caminhos do reino</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2016/f2/caverna/">Caverna de Ordinskaya</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2016/f2/medalhas/">Medalhas</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2015" class="collapsed">2015 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2015" class="collapse level-1-list-2015  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2015-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2015-1" class="collapse show" data-bs-parent=".level-1-list-2015">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2015/f1/arquivos/">Arquivos</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2015/f1/linhas/">Linhas Cruzadas</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2015-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2015-2" class="collapse " data-bs-parent=".level-1-list-2015">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2015/f2/capitais/">Capitais</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2015/f2/impedimento/">Impedimento!</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2015/f2/letras/">Letras</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2015/f2/torre/">Torre</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2014" class="collapsed">2014 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2014" class="collapse level-1-list-2014  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2014-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2014-1" class="collapse show" data-bs-parent=".level-1-list-2014">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2014/f1/letra/">Letras</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2014/f1/semente/">Semente</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2014/f1/setas/">Setas</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2014/f1/triangulo/">Triângulo</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2014-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2014-2" class="collapse " data-bs-parent=".level-1-list-2014">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2014/f2/corredor/">Corredor</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2014/f2/decifra/">Decifra</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2014/f2/memoria/">Jogo da memória</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2014/f2/quadrado/">Quadrado</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2013" class="collapsed">2013 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2013" class="collapse level-1-list-2013  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2013-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2013-1" class="collapse show" data-bs-parent=".level-1-list-2013">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2013/f1/capital/">Capital</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2013/f1/corrida/">Coriida</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2013/f1/robo/">Robô</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2013/f1/rodovia/">Rodovia</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2013-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2013-2" class="collapse " data-bs-parent=".level-1-list-2013">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2013/f2/manhattan/">Distância de Manhattan</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2013/f2/poligono/">Polígono</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2013/f2/quadrado/">Quadradinho de 8</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2013/f2/troco/">Troco</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2012" class="collapsed">2012 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2012" class="collapse level-1-list-2012  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2012-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2012-1" class="collapse show" data-bs-parent=".level-1-list-2012">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2012/f1/iguais/">Consecutivos</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2012/f1/corrida/">Corrida</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2012/f1/vice/">Vice-campeão</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2012-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2012-2" class="collapse " data-bs-parent=".level-1-list-2012">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2012/f2/carnaval/">Carnaval</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2012/f2/costa/">Costa</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2012/f2/guerra/">Guerra por território</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2011" class="collapsed">2011 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2011" class="collapse level-1-list-2011  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2011-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2011-1" class="collapse show" data-bs-parent=".level-1-list-2011">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2011/f1/corrida/">Corrida</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2011/f1/pas/">Progressões Aritméticas</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2011/f1/pulosapo/">Pulo do Sapo</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2011/f1/triangulos/">Triângulos</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2011-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2011-2" class="collapse " data-bs-parent=".level-1-list-2011">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2011/f2/bale/">Balé</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2011/f2/calculadora/">Calculadora</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2011/f2/colorir/">Colorindo</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2011/f2/selos/">Selos</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2010" class="collapsed">2010 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2010" class="collapse level-1-list-2010  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2010-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2010-1" class="collapse show" data-bs-parent=".level-1-list-2010">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2010/f1/conta/">Conta de água</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2010/f1/copa/">Copa do Mundo</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2010/f1/pedagio/">Pedágio</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2010/f1/times/">Times</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2010-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2010-2" class="collapse " data-bs-parent=".level-1-list-2010">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2010/f2/danca/">Dança Indígena</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2010/f2/fusoes/">Fusões</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2010/f2/chamada/">Lista de Chamada</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2010/f2/marciano/">Sedex Marciano</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2009" class="collapsed">2009 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2009" class="collapse level-1-list-2009  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2009-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2009-1" class="collapse show" data-bs-parent=".level-1-list-2009">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2009/f1/papel/">Aviões de papel</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2009/f1/bacterias/">Feira de Bactérias</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2009/f1/envelopes/">Número de Envelopes</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2009/f1/overflow/">Overflow</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2009-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2009-2" class="collapse " data-bs-parent=".level-1-list-2009">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2009/f2/banda/">Banda</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2009/f2/chocolate/">Competição de chocolate</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2009/f2/maratona/">Maratona</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2009/f2/olimp/">Olimpíadas</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2008" class="collapsed">2008 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2008" class="collapse level-1-list-2008  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2008-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2008-1" class="collapse show" data-bs-parent=".level-1-list-2008">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2008/f1/insens/">Insensibilidade</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2008/f1/obi/">OBI</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2008/f1/telefone/">Telefone</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2008-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2008-2" class="collapse " data-bs-parent=".level-1-list-2008">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2008/f2/auto/">Auto Estrada</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2008/f2/cavalos/">Cavalos</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2008/f2/viagem/">Viagem Espacial</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2007" class="collapsed">2007 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2007" class="collapse level-1-list-2007  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2007-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2007-1" class="collapse show" data-bs-parent=".level-1-list-2007">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2007/f1/colisoes/">Detectando Colisões</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2007/f1/perdida/">Peça Perdida</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2007/f1/magico/">Quadrado Mágico</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2007-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2007-2" class="collapse " data-bs-parent=".level-1-list-2007">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2007/f2/metro/">Pão a Metro</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2007/f2/tele/">Telemarketing</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2007/f2/uiqui/">Uiquipédia</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+
+        <li id="level-0">
+          <h2><a href="" data-bs-toggle="collapse" data-bs-target="#level-1-2006" class="collapsed">2006 <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h2>
+          <div id="level-1-2006" class="collapse level-1-list-2006  " data-bs-parent=".accordion-list">
+	    <ul>
+	      
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2006-1" class="collapsed">
+		  
+		  Fase 1
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2006-1" class="collapse show" data-bs-parent=".level-1-list-2006">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2006/f1/conversa/">Conversa não tão secreta</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2006/f1/margaridas/">Margaridas</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2006/f1/monopolio/">Monopólio</a></li>
+		    
+		  </ul>
+		  
+              <li>
+		<h3><a href="" data-bs-toggle="collapse" data-bs-target="#level-2-2006-2" class="collapsed">
+		  
+		  Fase 2
+		  
+		  <i class="bx bx-chevron-down icon-show"></i><i class="bx bx-chevron-up icon-close"></i></a></h3>
+		<div id="level-2-2006-2" class="collapse " data-bs-parent=".level-1-list-2006">
+		  <ul>
+		    
+   		    
+  		    <li class="atask"><a href="/pratique/p1/2006/f2/autorama/">Autorama</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2006/f2/lobo/">Lobo Mau</a></li>
+		    
+  		    <li class="atask"><a href="/pratique/p1/2006/f2/quadrado/">Quadrado Mágico</a></li>
+		    
+		  </ul>
+		  
+		</div>
+	      </li>
+            </ul>
+	  </div>
+	</li>
+      
+      
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+	</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+  
+    
+  </main><!-- End #main -->
+
+  
+
+  
+  
+
+  <div style="height: 10px; background-color: gray;"></div>
+
+  
+
+<!-- ======= Sponsors Section ======= -->
+    <section id="sponsors" class="sponsors section-bg-dark">
+
+      <div class="container">
+      
+        <div class="row flexbox"> <!-- data-aos="zoom-in"-->
+
+          <div class="col-4 col-md-2">
+	    <div>Promoção
+	    </div>
+	    <div>
+	      <a href="https://www.sbc.org.br">
+              <img src="/static/assets/img/sponsors/logo-sbc.svg" class="img-fluid" alt="logo sbc" width="80%" >
+	      </a>
+	    </div>
+          </div>
+	  
+          <div class="col-8 col-md-4" style="border-left: 0.5px solid gray;">
+	    <div>Patrocínio
+	    </div>
+            <a href="https://www.btgpactual.com" target="_blank">
+	      <img src="/static/assets/img/sponsors/logo-btg.svg" class="img-fluid" alt="" width="40%"></a>
+	    
+	    <img src="/static/assets/img/sponsors/space.svg" class="img-fluid" alt="" width="5%">
+
+            <a href="https://www.gov.br/cnpq/pt-br" target="_blank">
+	      <img src="/static/assets/img/sponsors/logo-cnpq.svg" class="img-fluid" alt="" width="40%"></a>
+          </div>
+
+          <div class="col-8 col-md-4" style="border-left: 0.5px solid gray;">
+	    <div>Apoio
+	    </div>
+	    
+
+            <a href="https://www.unicamp.br" target="_blank">
+	      <img src="/static/assets/img/sponsors/logo-behring-2024.svg" class="img-fluid" alt="" width="17%"></a>
+
+	    <img src="/static/assets/img/sponsors/space.svg" class="img-fluida" alt="" width="15%">
+
+            <a href="https://www.unicamp.br" target="_blank">
+	      <img src="/static/assets/img/sponsors/logo-unicamp.svg" class="img-fluid" alt="" width="35%"></a>
+
+          </div>
+
+          <div class="col-4 col-md-2" style="border-left: 0.5px solid;">
+	    <div>Coordenação
+	    </div>
+            <a href="https://www.ic.unicamp.br" target="_blank">
+	      <img src="/static/assets/img/sponsors/logo-ic.svg" class="img-fluid" alt="" width="80%"></a>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Sponsors Section -->
+
+  
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+    
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-3 col-md-6 footer-contact">
+            <h3>OBI</h3>
+            <p>
+              Olimpíada Brasileira de Informática <br>
+              Instituto de Computação<br>
+              Unicamp <br><br>
+              <strong>Email:</strong> olimpinf@ic.unicamp.br<br>
+              <strong>Whatsapp:</strong> (19) 3199-7399<br>
+            </p>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Links Úteis</h4>
+            <ul>
+              <li><i class="bx bx-chevron-right"></i> <a href="/">Início</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="/info/regulamento/">Regulamento</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="/calendario/">Calendário</a></li>
+              <li><i class="bx bx-chevron-right"></i> <a href="/pratique/">Pratique</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+	    
+          </div>
+
+          <div class="col-lg-3 col-md-6 footer-links">
+            <h4>Redes Sociais</h4>
+            <!--p>Siga-nos</p-->
+            <div class="social-links mt-3">
+              <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>
+              <a href="https://www.facebook.com/olimpinf" class="facebook"><i class="bx bxl-facebook"></i></a>
+              <a href="https://www.instagram.com/olimpinf/" class="instagram"><i class="bx bxl-instagram"></i></a>
+              <a href="https://whatsapp.com/channel/0029VaXpOUt3bbV8CC3RRL00" class="whatsapp"><i class="bx bxl-whatsapp"></i></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container footer-bottom clearfix">
+      <div class="credits">
+        <!-- All the links in the footer should remain intact. -->
+        <!-- You can delete the links only if you purchased the pro version. -->
+        <!-- Licensing information: https://bootstrapmade.com/license/ -->
+        <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/arsha-free-bootstrap-html-template-corporate/ -->
+        Projeto gráfico <a href="https://bootstrapmade.com/">BootstrapMade</a>
+      </div>
+    </div>
+  </footer><!-- End Footer -->
+
+  <div id="preloader"></div>
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <script src="/static/assets/vendor/aos/aos.js"></script>
+  <script src="/static/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/assets/vendor/glightbox/js/glightbox.min.js"></script>
+  <!--script src="/static/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script-->
+  <script src="/static/assets/vendor/swiper/swiper-bundle.min.js"></script>
+  <!--script src="/static/assets/vendor/waypoints/noframework.waypoints.js"></script-->
+  <!--script src="/static/assets/vendor/php-email-form/validate.js"></script-->
+
+  <!-- Template Main JS File -->
+  <script src="/static/assets/js/calendar.js"></script>
+  <script src="/static/assets/js/main.js"></script>
+  <script src="/static/assets/js/local.js"></script>
+
+  
+
+</body>
+
+</html>
