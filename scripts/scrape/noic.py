@@ -1,33 +1,9 @@
-"""NOIC problem snapshot writer.
+"""NOIC problem snapshot writer. See ``docs/adr/0006-manual-scrape-no-cron-mvp.md``.
 
-Per M2.T3 and ADR-0006:
-
-- ``python -m scripts.scrape.noic`` is the canonical entry point.
-- Writes ``data/snapshots/noic-YYYY-MM-DD.yaml`` whose top-level
-  ``problems`` list matches the ``scripts.seed`` schema (one row per
-  problem, with nested ``test_cases``).
-- Idempotent: re-running on the same day overwrites the same file;
-  re-loading via ``scripts.seed.seed_from_file`` does not duplicate
-  rows.
-- Best-effort, exit 0 on every reachable code path: a real NOIC
-  source isn't always available (the site is gated/JS-heavy), so the
-  MVP behavior is to copy a hand-authored fixture from
-  ``data/snapshots/noic-fixture.yaml``. The fixture path is the
-  source of truth until ``fetch_from_network()`` is implemented.
-
-Why a fixture and not a live scrape (yet)?
-
-The NOIC public site (https://noic.com.br/) is login-walled and
-heavily JavaScript-driven. A live scrape in MVP would need a
-browser stack and credential handling that ADR-0006 explicitly
-defers (manual runs, no infra). The fixture gives us:
-
-1. A runnable script on every developer machine, with zero network
-   dependency.
-2. A seed schema sanity check — if the seed loader accepts the
-   snapshot, M2.T3's contract is met.
-3. A clean seam to swap ``fetch_from_network()`` in later without
-   touching the public ``scrape_noic`` signature.
+Writes ``data/snapshots/noic-YYYY-MM-DD.yaml`` matching the ``scripts.seed``
+schema, idempotently overwriting on re-runs. Best-effort: copies the local
+``data/snapshots/noic-fixture.yaml`` until a live ``fetch_from_network()`` is
+implemented; no infra/credentials per ADR-0006.
 """
 
 from __future__ import annotations
@@ -176,44 +152,12 @@ def _write_snapshot(out_path: Path, payload: dict[str, Any]) -> None:
         raise
 
 
-def fetch_from_network(*args: Any, **kwargs: Any) -> dict[str, Any]:
-    """Future seam for a live NOIC scrape.
-
-    TODO: implement when source is finalized.
-
-    Per the M2.T3 ticket, the MVP defaults to the fixture path so the
-    script is runnable without scraping. A live implementation should:
-
-    1. Use the ``browser-automation`` or
-       ``scraping-br-residential-proxy`` skill (see code-gym-workflow).
-    2. Return a dict matching the seed schema (``{"problems": [...]}``).
-    3. Be best-effort: on any error, fall back to the fixture so the
-       snapshot is always written and ``scrape_noic`` always exits 0.
-
-    Keeping this stub distinct from ``scrape_noic`` makes the seam
-    obvious for the next agent who picks this ticket up.
-    """
-    raise NotImplementedError(
-        "fetch_from_network is the future live-scrape seam; until it's "
-        "implemented, scrape_noic uses the local fixture per ADR-0006 "
-        "and the ticket's best-effort guidance."
-    )
+# TODO(M2.T3+): live NOIC scrape seam
 
 
 # ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
-
-
-def _default_snapshots_dir() -> Path:
-    """Resolve the snapshots dir from the environment or fall back to
-    the repo default.
-
-    Tests redirect output with the ``NOIC_SNAPSHOT_DIR`` env var so
-    they don't litter the real ``data/snapshots/`` on every run.
-    """
-    env = os.environ.get("NOIC_SNAPSHOT_DIR")
-    return Path(env) if env else DEFAULT_SNAPSHOTS_DIR
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -223,7 +167,8 @@ def main(argv: list[str] | None = None) -> int:
     script still exits 0 if a snapshot was written, so an empty or
     partial scrape never blocks CI or local runs.
     """
-    snapshots_dir = _default_snapshots_dir()
+    env = os.environ.get("NOIC_SNAPSHOT_DIR")
+    snapshots_dir = Path(env) if env else DEFAULT_SNAPSHOTS_DIR
     try:
         out_path = scrape_noic(snapshots_dir)
     except FileNotFoundError as exc:
