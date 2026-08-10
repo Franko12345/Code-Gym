@@ -5,6 +5,23 @@
 > details. For those, see the ADRs and the plan at
 > `.hermes/plans/2026-08-09_221134-code-gym-v0.1.0-mvp.md`.
 
+## Milestone status
+
+Target: **v0.1.0 MVP**. Status as of `main @ f05d014` (v0.1.0 tagged below).
+
+- **M1: Auth** — ✅ done. Tickets: #3 (M1.T1), #4 (M1.T2),
+  #5 (M1.T3), #6 (M1.T4). PRs: #22, #24, #25, #29.
+- **M2: Content** — ✅ done. Tickets: #7 (M2.T1), #8 (M2.T2),
+  #9 (M2.T3). PRs: #21, #31, #30.
+- **M3: Navigation** — ✅ done. Tickets: #10 (M3.T1),
+  #11 (M3.T2), #12 (M3.T3). PRs: #20, #26, #28.
+- **M4: Editor + Sandbox + Submission** — ✅ done. Tickets:
+  #13 (M4.T1 → #23), #14 (M4.T3 → #18), #15 (M4.T2 → #27),
+  #16 (M4.T4 → #32), #17 (M4.T5 → #33).
+- **Prefactor P.1** — ✅ done. Ticket: #2. PR: #19.
+
+**16 of 16 tickets merged. v0.1.0 milestone complete.**
+
 ## What this is
 
 A personal training app for **DSI** (Data Structures & Algorithms)
