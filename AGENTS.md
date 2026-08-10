@@ -1,18 +1,5 @@
 # Code-Gym
 
-Coding gym: exercises, katas, and from-scratch implementations.
-No fixed curriculum — pick a topic, build it small, see it run.
-
-**Always read `CONTEXT.md` first** — it has the current state, the
-roadmap, and the active pitfalls from past sessions.
-
-## Quick start
-
-```bash
-ls                 # browse exercises / builds
-cat CONTEXT.md     # roadmap + state
-```
-
 ## Agent skills
 
 ### Issue tracker
@@ -30,7 +17,3 @@ Uses the Matt Pocock default five-label vocabulary
 
 Single-context layout: one `CONTEXT.md` at the repo root, ADRs under
 `docs/adr/`. See [`docs/agents/domain.md`](docs/agents/domain.md).
-
-## Author
-
-Franko.
