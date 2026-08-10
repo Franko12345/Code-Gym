@@ -21,6 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.auth.middleware import AuthMiddleware
+from app.auth.routes import router as auth_router
 from app.profile.routes import router as profile_router
 from app.roadmap.routes import router as roadmap_router
 
@@ -53,6 +54,10 @@ app.include_router(roadmap_router)
 # expose viewer context to the template (future "is this my profile?"
 # affordance).
 app.include_router(profile_router)
+
+# M1.T4 — attach the auth router (/login + /logout). Login is the
+# only public auth surface (no /signup, per ADR-0003).
+app.include_router(auth_router)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
