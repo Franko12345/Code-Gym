@@ -6,8 +6,10 @@ M3.T1 — minimal stub. Provides:
 - Jinja2 templates wired via `fastapi.templating.Jinja2Templates`
 - HTMX 2.x loaded from jsDelivr CDN with a real SRI hash (ADR-0004)
 
-No auth, no DB, no problem routes yet — those land in M1 and M3
-follow-ups. This file is the seam where future modules attach.
+M3.T2 — `/roadmap` router attached (see `app.roadmap.routes`).
+
+No DB writes yet — those land in M1 and M4 follow-ups. This file is
+the seam where future modules attach.
 """
 
 from pathlib import Path
@@ -16,6 +18,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+from app.roadmap.routes import router as roadmap_router
 
 APP_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = APP_DIR / "templates"
@@ -29,6 +33,10 @@ app = FastAPI(title="Code-Gym", version="0.1.0")
 # StaticFiles is mounted at /static; files in app/static/ become
 # /static/<relative-path>.
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+# M3.T2 — attach the roadmap router. The router is responsible for
+# its own auth gate (302 → /login if no session cookie).
+app.include_router(roadmap_router)
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)

@@ -81,6 +81,27 @@ SCHEMA: tuple[str, ...] = (
         weight INTEGER DEFAULT 1
     )
     """,
+    # Per the v0.1.0 plan; the roadmap progress query (M3.T2) needs
+    # this table to compute per-user solved counts. Submission writes
+    # land in M4.T4; for M3.T2 we only read.
+    """
+    CREATE TABLE IF NOT EXISTS submissions (
+        id INTEGER PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id),
+        problem_id INTEGER NOT NULL REFERENCES problems(id),
+        code TEXT NOT NULL,
+        language TEXT NOT NULL,
+        verdict TEXT NOT NULL,
+        runtime_ms INTEGER,
+        memory_kb INTEGER,
+        attempt_n INTEGER NOT NULL,
+        submitted_at TEXT NOT NULL
+    )
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_submissions_user_problem
+        ON submissions(user_id, problem_id)
+    """,
 )
 
 
