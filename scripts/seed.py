@@ -38,7 +38,7 @@ import yaml
 from app.db import DEFAULT_DB_PATH, get_connection, init_db
 
 
-# `ibi_phase` is optional for auxiliary topics. Keep the column
+# `obi_phase` is optional for auxiliary topics. Keep the column
 # nullable in the schema; default is NULL.
 ISO_NOW = lambda: dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
 

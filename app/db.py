@@ -79,7 +79,7 @@ SCHEMA: tuple[str, ...] = (
 # ---------------------------------------------------------------------------
 
 
-class get_connection:  # noqa: N801 — context-manager class, intentional
+class get_connection:
     """Context manager that yields a sqlite3 connection with PRAGMA
     foreign_keys=ON and row factory set to sqlite3.Row.
 
@@ -103,7 +103,6 @@ class get_connection:  # noqa: N801 — context-manager class, intentional
         conn = sqlite3.connect(
             str(self.db_path),
             check_same_thread=False,
-            detect_types=sqlite3.PARSE_DECLTYPES,
         )
         conn.row_factory = sqlite3.Row
         # Per task constraints: FK enforcement must be ON.
