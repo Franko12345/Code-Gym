@@ -165,3 +165,130 @@ a:hover {
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+/* ------------------------------------------------------------------ */
+/* Roadmap topic grid (M3.T2)                                         */
+/*                                                                    */
+/* NeetCode-style responsive grid of cards. Each card carries a       */
+/* header (topic name + OBI phase), a horizontal progress bar, and a  */
+/* footer with "solved / total" + percentage.                         */
+/* ------------------------------------------------------------------ */
+
+.topic-grid {
+  list-style: none;
+  margin: 1.5rem 0 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.topic-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.topic-card:hover {
+  border-color: var(--color-link);
+  transform: translateY(-1px);
+}
+
+.topic-card-link {
+  display: block;
+  padding: 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.topic-card-link:hover {
+  text-decoration: none;
+}
+
+.topic-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.topic-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.topic-card-phase {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-link);
+  background: rgba(88, 166, 255, 0.1);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+/* Progress bar — same component used in M3.T1 utility tests; reused
+ * here so the CSS class is stable across pages. */
+.progress-bar {
+  position: relative;
+  height: 8px;
+  background: var(--color-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-card-border);
+}
+
+.progress-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--color-solved);
+  /* Smooth width transitions when progress changes after a submission. */
+  transition: width 240ms ease;
+}
+
+.topic-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.progress-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-count.solved {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.progress-percent {
+  font-weight: 600;
+  color: var(--color-solved);
+  font-variant-numeric: tabular-nums;
+}
+
+.content-subtitle {
+  margin-top: 0;
+  color: var(--color-text-muted);
+}
+
+.empty-state {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--color-card);
+  border: 1px dashed var(--color-card-border);
+  border-radius: 8px;
+  color: var(--color-text-muted);
+}

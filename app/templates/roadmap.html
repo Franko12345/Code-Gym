@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{# M3.T2 — NeetCode-style topic grid.
+
+   One card per topic. Each card has:
+     - topic name (and OBI phase if set)
+     - progress bar (solved / total, with inline width for CSS)
+     - link to the topic detail page (placeholder href='#' for M3.T2;
+       M3.T3 / a future ticket will replace it with the real
+       /problems?topic=<slug> route)
+
+   Progress math is computed in ``app.roadmap.service`` and surfaced
+   as integer fields (``solved_problems``, ``total_problems``,
+   ``percent``). Empty progress renders as ``0 / 0`` (still 0%) —
+   not blank, not NaN — so the template never needs conditionals. #}
+
+{% block content %}
+  <h1>Roadmap</h1>
+  <p class="content-subtitle">
+    Sua trilha de estudo por tópico. A barra mostra quantos problemas
+    você já resolveu (verdict <code>AC</code>) sobre o total.
+  </p>
+
+  {% if not topics %}
+    <p class="empty-state">
+      Nenhum tópico cadastrado ainda — semeie
+      <code>data/seed/topics.yaml</code> via
+      <code>python -m scripts.seed --file ...</code>.
+    </p>
+  {% else %}
+    <ul class="topic-grid">
+      {% for topic in topics %}
+        <li class="topic-card">
+          <a class="topic-card-link" href="#" aria-label="Abrir tópico {{ topic.name }}">
+            <header class="topic-card-header">
+              <h2 class="topic-card-title">{{ topic.name }}</h2>
+              {% if topic.obi_phase %}
+                <span class="topic-card-phase">OBI {{ topic.obi_phase }}</span>
+              {% endif %}
+            </header>
+
+            <div class="progress-bar"
+                 role="progressbar"
+                 aria-valuemin="0"
+                 aria-valuemax="100"
+                 aria-valuenow="{{ topic.percent }}"
+                 aria-label="Progresso em {{ topic.name }}">
+              <div class="progress-bar-fill" style="width: {{ topic.percent }}%;"></div>
+            </div>
+
+            <footer class="topic-card-footer">
+              <span class="progress-count solved">{{ topic.solved_problems }} / {{ topic.total_problems }}</span>
+              <span class="progress-percent">{{ topic.percent }}%</span>
+            </footer>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}
