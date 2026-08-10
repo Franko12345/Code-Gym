@@ -1,1 +1,0 @@
-"""Auth subpackage — password hashing + (future) JWT helpers."""

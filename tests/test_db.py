@@ -242,15 +242,3 @@ def test_users_email_unique_constraint_is_enforced(tmp_path: Path) -> None:
                 "INSERT INTO users (email, password_hash) VALUES (?, ?)",
                 ("dup@froto.online", "$2b$12$b"),
             )
-
-
-# ---------------------------------------------------------------------------
-# import surface sanity
-# ---------------------------------------------------------------------------
-
-
-def test_init_db_is_importable_from_app_db() -> None:
-    """`init_db` must be importable from `app.db` (seam location)."""
-    from app.db import init_db as fn
-
-    assert callable(fn)

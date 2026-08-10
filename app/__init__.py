@@ -1,1 +1,0 @@
-"""Auth package — bcrypt password hashing/verification (M1.T1)."""

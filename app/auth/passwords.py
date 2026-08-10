@@ -17,9 +17,6 @@ Design choices (pinned by module constants + tests):
   still snappy. Lower (10) is too cheap on commodity GPUs; higher
   (14+) hurts legitimate users without a proportional security gain.
 
-* $2b$ prefix (the modern bcrypt variant; $2a$ has a known bug for
-  non-ASCII input, $2y$ is PHP's notation for $2b$).
-
 * No plaintext ever lives longer than the function call. The hash is
   the only artifact stored in SQLite.
 """
@@ -31,10 +28,6 @@ import bcrypt
 # bcrypt cost factor. Pinned here + asserted by tests so a future
 # bump is a conscious decision (not a silent regression).
 BCRYPT_ROUNDS: int = 12
-
-# bcrypt prefix variant. $2b$ is the OpenBSD-corrected $2a$ and what
-# the Python `bcrypt` package emits by default.
-BCRYPT_PREFIX: str = "$2b$"
 
 
 def hash_pw(plain: str) -> str:
