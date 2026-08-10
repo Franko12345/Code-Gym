@@ -18,6 +18,7 @@ cookies. Cookie issuance belongs to the login route (M1.T4).
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -35,6 +36,15 @@ from app.db import DEFAULT_DB_PATH, get_connection
 
 # Cookie name. Locked in via test (``test_middleware_reads_cg_session_cookie_name``).
 COOKIE_NAME: str = "cg_session"
+
+# Pinned cookie attributes — the contract M1.T4 (/login) reads when
+# issuing the cookie. Centralised here so any future endpoint that
+# reads or writes the session cookie stays in sync.
+COOKIE_HTTPONLY: bool = True
+COOKIE_SAMESITE: str = "lax"
+# Secure is off in dev (http://localhost); flip on in prod via env.
+COOKIE_SECURE: bool = os.environ.get("CODE_GYM_ENV", "dev") == "prod"
+COOKIE_MAX_AGE: int = 30 * 24 * 60 * 60  # 30 days, matching DEFAULT_EXPIRES_IN_SECONDS
 
 # The DB the middleware reads from. Tests point this at a tmp
 # SQLite file; production leaves it at the default. Kept as a
@@ -130,7 +140,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 __all__ = (
     "AuthMiddleware",
+    "COOKIE_HTTPONLY",
+    "COOKIE_MAX_AGE",
     "COOKIE_NAME",
+    "COOKIE_SAMESITE",
+    "COOKIE_SECURE",
     "DB_PATH",
     "UserView",
 )

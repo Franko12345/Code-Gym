@@ -1,11 +1,5 @@
 """JWT encode/decode for the ``cg_session`` cookie (M1.T2).
 
-Why JWT (not server-side sessions):
-the app is single-instance, no Redis, and the auth state we need
-to carry is exactly one integer (the user id). A signed JWT gives
-us stateless verification at zero ops cost — the cookie itself
-*is* the session.
-
 Why HS256:
 we control both ends (encode and decode live in this repo), there's
 no need to involve an external KMS, and HS256 is what PyJWT defaults
@@ -16,12 +10,6 @@ Why fail-fast on a missing secret:
 a misconfigured deploy that signs tokens with ``""`` or a default
 is indistinguishable from a working deploy — until somebody forges
 a token. Crashing at import time makes the misconfig loud.
-
-Why 30-day expiry:
-a balance between UX (users stay logged in across visits) and
-blast radius (a stolen cookie is good for at most 30 days). The
-MVP has no refresh-token flow; longer sessions land in v0.2 if
-needed.
 """
 
 from __future__ import annotations
@@ -39,34 +27,21 @@ import jwt as pyjwt
 _SECRET_ENV_VAR: Final[str] = "CODE_GYM_JWT_SECRET"
 
 
-def _load_secret() -> str:
-    """Return the JWT secret from the env, or raise.
+_SECRET: str = os.environ.get(_SECRET_ENV_VAR) or ""
+if not _SECRET:
+    raise RuntimeError(
+        f"{_SECRET_ENV_VAR} env var is required for JWT signing. "
+        "Set it to a long random string before starting the app."
+    )
 
-    A missing or empty secret is a deployment bug, not a runtime
-    condition: refuse to start so the bug can't ship as a deploy
-    that silently accepts forged tokens.
-    """
-    value = os.environ.get(_SECRET_ENV_VAR)
-    if not value:
-        raise RuntimeError(
-            f"{_SECRET_ENV_VAR} env var is required for JWT signing. "
-            "Set it to a long random string before starting the app."
-        )
-    return value
-
-
-# Loaded at import. Tests reload this module after clearing the env
-# var to exercise the fail-fast path.
-SECRET: Final[str] = _load_secret()
+# Tests reload this module after clearing the env var to exercise the fail-fast path.
+SECRET: Final[str] = _SECRET
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
 ALGORITHM: Final[str] = "HS256"
-# Cookie validity window. 30 days, matching the spec. Configurable
-# per call via ``expires_in_seconds`` (the seam the expired-token
-# test uses to avoid sleeping through real time).
 DEFAULT_EXPIRES_IN_SECONDS: Final[int] = 30 * 24 * 60 * 60  # 30 days
 
 # Claim name carrying the user id. ``sub`` is the standard JWT
@@ -85,14 +60,9 @@ def encode_jwt(user_id: int, *, expires_in_seconds: int = DEFAULT_EXPIRES_IN_SEC
     The token is valid for ``expires_in_seconds`` from ``now`` (default
     30 days). The expiry lives in the standard ``exp`` claim so any
     PyJWT-based decoder can read it.
-
-    Raises:
-        TypeError: if ``user_id`` is not an ``int`` — the middleware
-            looks up by id and a non-int would always miss.
     """
     if not isinstance(user_id, int) or isinstance(user_id, bool):
-        # ``bool`` is a subclass of ``int`` in Python; reject it so
-        # ``encode_jwt(True)`` doesn't silently encode ``1``.
+        # bool is a subclass of int; reject it so encode_jwt(True) doesn't encode 1.
         raise TypeError(f"user_id must be int, got {type(user_id).__name__}")
 
     now = int(time.time())
