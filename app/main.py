@@ -17,6 +17,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app.auth.middleware import AuthMiddleware
+
 APP_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = APP_DIR / "templates"
 STATIC_DIR = APP_DIR / "static"
@@ -24,6 +26,13 @@ STATIC_DIR = APP_DIR / "static"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 app = FastAPI(title="Code-Gym", version="0.1.0")
+
+# Auth middleware — populates request.state.user from the cg_session
+# cookie on every request. See app/auth/middleware.py for the contract.
+# Must be added before any route handlers mount (FastAPI applies
+# middleware in reverse-add order, so the last add_middleware runs
+# outermost — i.e. this is the outermost middleware for now).
+app.add_middleware(AuthMiddleware)
 
 # Serve /static/style.css (and future favicon, CodeMirror CDN refs, etc.)
 # StaticFiles is mounted at /static; files in app/static/ become
