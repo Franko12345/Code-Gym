@@ -1,0 +1,26 @@
+problems:
+  - slug: noic-soma
+    title: Soma (NOIC)
+    topic_slug: matematica
+    difficulty: 1
+    statement_md: |
+      Leia dois inteiros e imprima a soma.
+    input_format_md: Uma linha com dois inteiros `a` e `b`.
+    output_format_md: Uma linha com `a + b`.
+    examples_json: |
+      [{"stdin": "1 2", "stdout": "3", "explanation": ""}]
+    source: NOIC
+    source_url: https://noic.com.br/
+    test_cases:
+      - stdin: |
+          1 2
+        expected_stdout: |
+          3
+        is_sample: true
+        weight: 1
+      - stdin: |
+          10 20
+        expected_stdout: |
+          30
+        is_sample: false
+        weight: 2

@@ -14,7 +14,11 @@ env/
 .pytest_cache/
 .pytest_cache
 
-# SQLite + data (per ADR-0001: data/ holds seed yaml and runtime DBs)
+# SQLite + data (per ADR-0001: data/ holds seed yaml and runtime DBs).
+# data/ is gitignored wholesale. The one exception is
+# data/snapshots/noic-fixture.yaml — committed with `git add -f`
+# because M2.T3's NOIC scraper needs a checked-in source fixture
+# that lives alongside the runtime snapshots it produces.
 data/
 *.db
 *.sqlite
