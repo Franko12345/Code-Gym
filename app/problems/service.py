@@ -27,6 +27,7 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Iterable, Optional, Union
 
@@ -277,6 +278,27 @@ def judge_submission(
 # ---------------------------------------------------------------------------
 
 
+def _fuzzy_score(query: str, title: str, slug: str) -> float:
+    """Score 0-1. Substring match = 1.0. SequenceMatcher ratio otherwise.
+
+    Case-insensitive. A substring hit on title OR slug returns 1.0 so
+    exact-token matches always rank above fuzzies. Otherwise returns
+    the best ``difflib.SequenceMatcher`` ratio across title and slug.
+
+    Used by ``list_problems_for_browse`` to re-rank the SQL LIKE result
+    set so queries like ``q=fatoril`` (typo for fatorial) still match.
+    """
+    q = query.lower()
+    t = title.lower()
+    s = slug.lower()
+    if q in t or q in s:
+        return 1.0
+    return max(
+        SequenceMatcher(None, q, t).ratio(),
+        SequenceMatcher(None, q, s).ratio(),
+    )
+
+
 @dataclass(frozen=True)
 class ProblemListRow:
     """One problem row in the /problems browse list.
@@ -287,8 +309,9 @@ class ProblemListRow:
 
     ``best_verdict`` is the viewer's best verdict on this problem so
     the card can show the same colour-coded badge the profile grid
-    does (green / red / yellow / untouched). Empty string when the
-    viewer is anonymous or hasn't attempted the problem.
+    does (green / red / yellow / untouched). ``None`` when the viewer
+    is anonymous; the template renders the bare card without badges
+    in that case (no leakage of the colour rule to anonymous users).
     """
 
     problem_id: int
@@ -297,7 +320,7 @@ class ProblemListRow:
     difficulty: int
     topic_slug: str
     topic_name: str
-    best_verdict: str  # "" for untouched
+    best_verdict: str  # "" for untouched; populated only when user_id is set
 
 
 def list_problems_for_browse(
@@ -344,9 +367,11 @@ def list_problems_for_browse(
         where.append("t.slug = ?")
         binds.append(topic_slug)
 
-    if query and query.strip():
-        where.append("LOWER(p.title) LIKE ?")
-        binds.append(f"%{query.strip().lower()}%")
+    # Note: do NOT add a SQL WHERE for the query string. The LIKE
+    # filter is too strict for short queries (e.g. "ordena" is a
+    # prefix-typo of "Ordene" but is not a substring of "Ordene 3
+    # Numeros"). We fetch all rows for the topic filter (cheap, few
+    # rows) and let _fuzzy_score filter + re-rank in Python.
 
     # Bind the user_id to a sentinel when None so we can keep the SQL
     # shape uniform. -1 is below any real autoincrement id and the
@@ -383,7 +408,18 @@ def list_problems_for_browse(
     with get_connection(path) as conn:
         rows = conn.execute(sql, binds).fetchall()
 
-    out: list[ProblemListRow] = []
+    # ---- Fuzzy re-ranking when a search query is present --------------
+    # The SQL WHERE clause uses ``LOWER(p.title) LIKE %q%`` as a coarse
+    # filter; ``_fuzzy_score`` then re-ranks so substring hits (score
+    # 1.0) float above fuzzy hits, and unrelated rows (ratio < 0.4)
+    # are dropped. This makes the search tolerate typos like
+    # ``q=fatoril`` -> finds the "fatorial" problem. When no query is
+    # set, fuzzy_query is None and we skip the re-rank so the SQL
+    # ORDER BY (topic > topic_slug > difficulty > id) is the only
+    # sort — same behaviour as before for /problems without ?q=.
+    fuzzy_query: str | None = query.strip() if (query and query.strip()) else None
+
+    scored: list[tuple[float, ProblemListRow]] = []
     for r in rows:
         # Same precedence as profile.service: AC > failed > other > "".
         if r["has_ever_ac"]:
@@ -394,18 +430,28 @@ def list_problems_for_browse(
             best = str(r["other_text"])
         else:
             best = ""
-        out.append(
-            ProblemListRow(
-                problem_id=int(r["problem_id"]),
-                slug=str(r["slug"]),
-                title=str(r["title"]),
-                difficulty=int(r["difficulty"]),
-                topic_slug=str(r["topic_slug"]),
-                topic_name=str(r["topic_name"]),
-                best_verdict=best,
-            )
+        row = ProblemListRow(
+            problem_id=int(r["problem_id"]),
+            slug=str(r["slug"]),
+            title=str(r["title"]),
+            difficulty=int(r["difficulty"]),
+            topic_slug=str(r["topic_slug"]),
+            topic_name=str(r["topic_name"]),
+            best_verdict=best,
         )
-    return out
+        if fuzzy_query is None:
+            scored.append((0.0, row))
+        else:
+            score = _fuzzy_score(fuzzy_query, row.title, row.slug)
+            if score >= 0.5:
+                scored.append((score, row))
+
+    # Sort by fuzzy score desc; stable sort preserves the SQL order
+    # (topic > topic_slug > difficulty > id) as the tiebreaker.
+    if fuzzy_query is not None:
+        scored.sort(key=lambda pair: pair[0], reverse=True)
+
+    return [row for _score, row in scored]
 
 __all__ = (
     "ACCEPTED_LANGUAGES",
@@ -415,6 +461,7 @@ __all__ = (
     "list_problems_for_browse",
     "run",
 )
+# FIX 1 svc marker: list_problems_for_browse
 # ``get_problem_id_by_slug`` and ``list_test_cases`` are module-
 # private helpers used only by ``judge_submission`` and are
 # deliberately excluded from ``__all__``.

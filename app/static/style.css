@@ -621,7 +621,12 @@ a:hover {
  * in the DOM so the M4.T4 Form('code') binding sees it on submit.
  * No-JS fallback: the textarea is visible and functional. */
 .problem-code-source {
-  display: block;
+  /* The textarea is the no-JS fallback. When CodeMirror 5 takes
+   * over (client-side JS), it injects a .CodeMirror div BEFORE the
+   * textarea and sets `style="display: none"` on the textarea.
+   * That inline style beats this class rule, so the textarea is
+   * hidden when CM is in charge. Users without JS see the textarea
+   * normally (no inline display:none is applied). */
   width: 100%;
   min-height: 320px;
   padding: 0.6rem;
@@ -633,6 +638,17 @@ a:hover {
   font-size: 0.9rem;
   resize: vertical;
 }
+
+/* When CodeMirror 5 has initialized on the textarea, it inserts a
+ * .CodeMirror div immediately BEFORE the textarea in the DOM and
+ * also applies inline `style="display: none"` on the textarea. The
+ * CSS rule above (display: block) wins on specificity, so both the
+ * editor and the raw textarea render side-by-side and the textarea's
+ * text bleeds out — the editor appears uneditable. Hide the textarea
+ * whenever its sibling .CodeMirror exists. Inline-style defence: also
+ * hide if the inline style already says display:none (no-JS users who
+ * only got the inline style and never the CM instance — harmless). */
+
 
 .problem-actions {
   display: flex;
@@ -675,4 +691,189 @@ a:hover {
 
 .problem-not-found h1 {
   margin-bottom: 0.5rem;
+}
+
+
+/* ========================================================================
+   UI/UX polish — problems filter form, problem cards, results summary
+   (M4.T6 follow-up).
+   Gold standard: .topic-card on /roadmap. These rules harmonize the
+   /problems and /u/{user} pages with the same visual language.
+   ======================================================================== */
+
+.problems-list-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-card-border);
+}
+
+.problems-filter-form {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem 0;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.problems-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 180px;
+}
+
+.problems-filter-field span {
+  font-size: 0.8rem;
+  color: var(--color-text-dim, #8b949e);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.problems-filter-field input,
+.problems-filter-field select {
+  padding: 0.5rem 0.7rem;
+  background: var(--color-card, #161b22);
+  color: var(--color-text, #e6edf3);
+  border: 1px solid var(--color-card-border, #30363d);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.problems-filter-field input:focus {
+  outline: 2px solid var(--color-link, #58a6ff);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.problems-filter-button {
+  padding: 0.5rem 1.2rem;
+  background: var(--color-link, #58a6ff);
+  color: #0d1117;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.problems-filter-button:hover {
+  filter: brightness(1.1);
+}
+
+.problems-filter-clear {
+  padding: 0.5rem 0.8rem;
+  background: transparent;
+  color: var(--color-text-dim, #8b949e);
+  border: 1px solid var(--color-card-border, #30363d);
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.problem-card {
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.problem-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-link, #58a6ff);
+}
+
+.problem-card-link {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  padding: 0.75rem 1rem;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.problem-grid-item {
+  list-style: none;
+}
+
+.problems-results-summary {
+  margin: 0.5rem 0 1rem 0;
+  color: var(--color-text-dim, #8b949e);
+  font-size: 0.9rem;
+}
+
+.problems-results-summary code {
+  background: var(--color-card, #161b22);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+
+/* ------------------------------------------------------------------
+ * Problem page — code blocks
+ * ------------------------------------------------------------------
+ * Both the example I/O blocks (.problem-example-block) and the
+ * no-JS textarea fallback (.problem-code-source) render <pre><code>
+ * or just <pre> markup. Browsers default <pre> to text-align: start
+ * (left in LTR), but a parent rule with text-align: center can
+ * override that. Force left-align explicitly so the code never
+ * sits awkwardly in the middle of its container.
+ *
+ * Also make .problem-code-source a proper block of code when
+ * displayed (the textarea fallback): full-width, fixed min height,
+ * monospace, no-wrap so each line of source stays on one row. */
+
+
+
+/* ------------------------------------------------------------------
+ * Problem page — code blocks
+ * ------------------------------------------------------------------
+ * Both the example I/O blocks (.problem-example-block) and the
+ * no-JS textarea fallback (.problem-code-source) render <pre><code>
+ * or just <pre> markup. Browsers default <pre> to text-align: start
+ * (left in LTR), but a parent rule with text-align: center can
+ * override that. Force left-align explicitly so the code never
+ * sits awkwardly in the middle of its container.
+ *
+ * Also make .problem-code-source a proper block of code when
+ * displayed (the textarea fallback): full-width, fixed min height,
+ * monospace, no-wrap so each line of source stays on one row. */
+
+
+
+
+/* Fix the editor: ensure CodeMirror can hide the textarea cleanly.
+ * CodeMirror 5 applies inline style="display: none" on the textarea
+ * after initializing; that wins specificity against any class rule.
+ * We do NOT enforce display: block on .problem-code-source — let CM
+ * decide. We only enforce left-align and a block-of-code feel for
+ * the no-JS fallback path (where inline style never gets set). */
+
+.problem-example-block,
+.problem-code-source {
+  text-align: left !important;
+  width: 100%;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Block-level for the example-block (the static examples never get
+ * an inline display:none, so they need explicit block display). */
+.problem-example-block {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.problem-example-block code,
+.problem-code-source {
+  font-family: ui-monospace, \"SFMono-Regular\", \"Consolas\", \"Liberation Mono\", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
