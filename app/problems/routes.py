@@ -69,8 +69,10 @@ from fastapi.templating import Jinja2Templates
 from app.db import DEFAULT_DB_PATH, get_connection
 from app.problems.service import (
     ACCEPTED_LANGUAGES,
+    ProblemListRow,
     SubmissionResult,
     judge_submission,
+    list_problems_for_browse,
 )
 
 
@@ -312,8 +314,91 @@ def _not_found(request: Request, slug: str) -> HTMLResponse:
     )
 
 
+
+
+
+# ---------------------------------------------------------------------------
+# Problem list page (FIX 1 — GET /problems)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/problems", response_class=HTMLResponse, name="problems_list")
+async def problems_list(
+    request: Request,
+    topic: Optional[str] = None,
+    q: Optional[str] = None,
+) -> HTMLResponse:
+    """Render ``app/templates/problems/list.html``.
+
+    Status codes:
+
+    * **302** — anonymous request, redirected to ``/login`` (auth gate
+      per ADR-0003 — no public browse of the problem set).
+    * **200** — the list renders. May be empty (filters matched
+      nothing, or the DB is empty); the template handles both.
+
+    Query params:
+
+    * ``topic`` — exact match against ``topics.slug``. Unknown slugs
+      render an empty-state (no 404; the user can just edit the URL).
+    * ``q`` — case-insensitive substring match against
+      ``problems.title`` (simple LIKE per the brief). Trimmed; empty
+      string is a no-op (returns everything).
+
+    The viewer (``request.state.user``) is plumbed through to the
+    template as ``viewer`` so each card can show the viewer's
+    colour-coded badge (same colour rule as /u/{username}). When the
+    viewer is anonymous the cards render without badges — no
+    colour leakage.
+    """
+    # ---- Auth gate (ADR-0003) --------------------------------------------
+    user = getattr(request.state, "user", None)
+    if user is None:
+        return RedirectResponse(url=LOGIN_PATH, status_code=302)  # type: ignore[return-value]
+
+    user_id = int(user.id) if user is not None else None
+
+    problems: list[ProblemListRow] = list_problems_for_browse(
+        topic_slug=topic,
+        query=q,
+        user_id=user_id,
+    )
+
+    # Pre-compute the title for the page header. Keeps the template a
+    # thin renderer.
+    if topic and q:
+        page_heading = f"Resultados para '{q}' em {topic}"
+    elif topic:
+        page_heading = f"Problemas — {topic}"
+    elif q:
+        page_heading = f"Resultados para '{q}'"
+    else:
+        page_heading = "Todos os problemas"
+
+    return _templates().TemplateResponse(
+        request,
+        "problems/list.html",
+        {
+            "page_title": "Problemas",
+            "viewer": user,
+            "problems": problems,
+            "filter_topic": topic or "",
+            "filter_q": q or "",
+            "page_heading": page_heading,
+        },
+    )
+
+
+# ``ProblemListRow`` is imported above so the type checker is happy
+# when the route signature uses it indirectly through the service
+# return type. ``name="problems_list"`` lets ``url_for`` point
+# other templates (e.g. roadmap topic cards) at this route.
+_ = ProblemListRow  # silence unused-import warnings
+
+
 __all__: Iterable[str] = (
     "LOGIN_PATH",
+    "problems_list",
     "router",
     "submit_solution",
 )

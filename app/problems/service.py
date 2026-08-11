@@ -269,10 +269,150 @@ def judge_submission(
     )
 
 
+
+
+
+# ---------------------------------------------------------------------------
+# Problem-list helpers (FIX 1 — GET /problems)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ProblemListRow:
+    """One problem row in the /problems browse list.
+
+    Carries everything the list template needs to render a card and
+    link it to /problems/{slug}. Deliberately does NOT include the
+    statement — that's a /problems/{slug} concern, not a list concern.
+
+    ``best_verdict`` is the viewer's best verdict on this problem so
+    the card can show the same colour-coded badge the profile grid
+    does (green / red / yellow / untouched). Empty string when the
+    viewer is anonymous or hasn't attempted the problem.
+    """
+
+    problem_id: int
+    slug: str
+    title: str
+    difficulty: int
+    topic_slug: str
+    topic_name: str
+    best_verdict: str  # "" for untouched
+
+
+def list_problems_for_browse(
+    *,
+    topic_slug: str | None = None,
+    query: str | None = None,
+    user_id: int | None = None,
+    db_path: str | Path | None = None,
+) -> list[ProblemListRow]:
+    """Return every problem (optionally filtered), ordered by topic
+    then difficulty then id.
+
+    Filters:
+
+    * ``topic_slug`` (optional) — exact match against ``topics.slug``.
+      Unknown slugs simply return an empty list (a 404 isn't worth a
+      round-trip — the template will render the empty-state).
+    * ``query`` (optional) — case-insensitive substring match against
+      ``problems.title`` via ``LIKE '%q%'``. Single-token search;
+      the brief said "simples LIKE" so we keep it that way. Empty /
+      whitespace-only query is a no-op.
+    * ``user_id`` (optional) — when set, populate ``best_verdict`` per
+      problem using the same conditional-aggregate strategy as the
+      profile service (no N+1).
+
+    Order matches the visual order on /roadmap: by topic
+    ``order_index``, then by topic ``slug``, then by difficulty ASC,
+    then by problem id ASC. Same ordering the profile grid uses
+    (M3.T3) so users see problems in a familiar sequence when they
+    leave their profile and hit /problems.
+
+    SQL: a single LEFT JOIN + GROUP BY pass. The LEFT JOIN attaches
+    the viewer's submissions (one row per submission, aggregated by
+    MAX/MIN CASE WHEN — same trick as profile.service). When
+    ``user_id`` is None the LEFT JOIN still runs but binds a
+    sentinel ``user_id = -1`` that matches no rows; the boolean
+    flags all collapse to zero and ``best_verdict`` is "".
+    """
+    path = str(db_path) if db_path is not None else str(DEFAULT_DB_PATH)
+    binds: list[int | str] = []
+    where: list[str] = []
+
+    if topic_slug:
+        where.append("t.slug = ?")
+        binds.append(topic_slug)
+
+    if query and query.strip():
+        where.append("LOWER(p.title) LIKE ?")
+        binds.append(f"%{query.strip().lower()}%")
+
+    # Bind the user_id to a sentinel when None so we can keep the SQL
+    # shape uniform. -1 is below any real autoincrement id and the
+    # LEFT JOIN returns zero rows for it.
+    bind_user_id = int(user_id) if user_id is not None else -1
+
+    sql = f"""
+        SELECT
+            p.id              AS problem_id,
+            p.slug            AS slug,
+            p.title           AS title,
+            p.difficulty      AS difficulty,
+            t.slug            AS topic_slug,
+            t.name            AS topic_name,
+            t.order_index     AS topic_order_index,
+            MAX(CASE WHEN s.verdict = 'AC' THEN 1 ELSE 0 END) AS has_ever_ac,
+            MIN(CASE WHEN s.verdict = 'AC' THEN s.verdict END) AS ac_text,
+            MIN(CASE WHEN s.verdict IN ('WA', 'RE', 'TLE') THEN s.verdict END) AS failed_text,
+            MIN(CASE WHEN s.verdict IS NOT NULL
+                      AND s.verdict NOT IN ('AC', 'WA', 'RE', 'TLE') THEN s.verdict END) AS other_text
+        FROM problems p
+        JOIN topics t ON t.id = p.topic_id
+        LEFT JOIN submissions s
+            ON s.problem_id = p.id AND s.user_id = ?
+        {("WHERE " + " AND ".join(where)) if where else ""}
+        GROUP BY p.id, p.slug, p.title, p.difficulty,
+                 t.slug, t.name, t.order_index
+        ORDER BY t.order_index ASC, t.slug ASC,
+                 p.difficulty ASC, p.id ASC
+    """
+    # user_id bind comes first (the LEFT JOIN ON clause).
+    binds.insert(0, bind_user_id)
+
+    with get_connection(path) as conn:
+        rows = conn.execute(sql, binds).fetchall()
+
+    out: list[ProblemListRow] = []
+    for r in rows:
+        # Same precedence as profile.service: AC > failed > other > "".
+        if r["has_ever_ac"]:
+            best = str(r["ac_text"])
+        elif r["failed_text"]:
+            best = str(r["failed_text"])
+        elif r["other_text"]:
+            best = str(r["other_text"])
+        else:
+            best = ""
+        out.append(
+            ProblemListRow(
+                problem_id=int(r["problem_id"]),
+                slug=str(r["slug"]),
+                title=str(r["title"]),
+                difficulty=int(r["difficulty"]),
+                topic_slug=str(r["topic_slug"]),
+                topic_name=str(r["topic_name"]),
+                best_verdict=best,
+            )
+        )
+    return out
+
 __all__ = (
     "ACCEPTED_LANGUAGES",
+    "ProblemListRow",
     "SubmissionResult",
     "judge_submission",
+    "list_problems_for_browse",
     "run",
 )
 # ``get_problem_id_by_slug`` and ``list_test_cases`` are module-

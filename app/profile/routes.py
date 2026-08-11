@@ -38,7 +38,7 @@ exception handler (which would emit an ugly HTML traceback).
 from __future__ import annotations
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.db import DEFAULT_DB_PATH, get_connection
@@ -256,6 +256,42 @@ def _not_found(request: Request, username: str) -> HTMLResponse:
         },
         status_code=404,
     )
+
+
+
+
+
+# ---------------------------------------------------------------------------
+# /profile — redirect to the viewer's own profile (FIX 2)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/profile", include_in_schema=False)
+async def profile_redirect(request: Request):
+    """Redirect ``/profile`` to the viewer's own ``/u/{username}`` page.
+
+    Status codes:
+
+    * **302** — viewer is authenticated → ``/u/{user.id}`` (the
+      primary key is the most stable identifier; the display_name
+      could be renamed later, the id never changes).
+    * **302** — viewer is anonymous → ``/login``. The login page
+      already handles the "return to where you came from" via the
+      existing post-login flow (no special-casing needed here).
+    * **404** — *should not happen* while AuthMiddleware is wired:
+      if ``request.state.user`` is set the middleware guarantees a
+      real users row. We defend with a 404 rather than 500 if the
+      invariant ever breaks.
+    """
+    user = getattr(request.state, "user", None)
+    if user is None:
+        return RedirectResponse(url="/login", status_code=302)
+
+    # Redirect by id (stable). /u/{id} is one of the three branches
+    # in _resolve_profile_user (id → email → display_name), so this
+    # always lands on the same profile page regardless of which
+    # branch fires.
+    return RedirectResponse(url=f"/u/{int(user.id)}", status_code=302)
 
 
 __all__ = ("router",)

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{# FIX 1 — GET /problems (list page).
+
+   Same problem-card markup as profile.html so the two pages feel
+   consistent. Each card is a link to /problems/{slug} (the detail
+   page). The viewer (request.state.user) is plumbed through so we
+   can show the per-problem colour-coded badge without a second
+   round-trip.
+
+   The empty-state copy is intentionally explicit about the filter:
+   the user may have over-narrowed their search and needs to know
+   how to widen it again. #}
+
+{% block content %}
+  <header class="problems-list-header">
+    <h1>{{ page_heading }}</h1>
+    <p class="content-subtitle">
+      {{ problems|length }} problema{{ "" if problems|length == 1 else "s" }} encontrado{{ "" if problems|length == 1 else "s" }}{% if filter_topic %} no tópico <code>{{ filter_topic }}</code>{% endif %}{% if filter_q %} com <code>{{ filter_q }}</code> no título{% endif %}.
+    </p>
+
+    {# Filter form — GET so the URL stays bookmarkable and the
+       template can re-hydrate the input values from the query
+       string. No JS. #}
+    <form class="problems-filter-form" method="get" action="/problems">
+      <label class="problems-filter-field">
+        <span>Tópico</span>
+        <input
+          type="text"
+          name="topic"
+          value="{{ filter_topic }}"
+          placeholder="ex.: arrays"
+          autocomplete="off"
+        />
+      </label>
+      <label class="problems-filter-field">
+        <span>Buscar no título</span>
+        <input
+          type="text"
+          name="q"
+          value="{{ filter_q }}"
+          placeholder="ex.: fatorial"
+          autocomplete="off"
+        />
+      </label>
+      <button type="submit" class="problems-filter-submit">Filtrar</button>
+      {% if filter_topic or filter_q %}
+        <a class="problems-filter-clear" href="/problems">limpar filtros</a>
+      {% endif %}
+    </form>
+  </header>
+
+  {% if not problems %}
+    <p class="empty-state">
+      Nenhum problema encontrado
+      {% if filter_topic %}no tópico <code>{{ filter_topic }}</code>{% endif %}
+      {% if filter_q %}com <code>{{ filter_q }}</code> no título{% endif %}
+      {% if not filter_topic and not filter_q %}cadastrado ainda{% endif %}.
+    </p>
+  {% else %}
+    <ul class="problem-grid">
+      {% for problem in problems %}
+        <li class="problem-grid-item"
+            data-status="{% if problem.best_verdict == 'AC' %}solved{% elif problem.best_verdict in ('WA', 'RE', 'TLE') %}failed{% elif problem.best_verdict %}error{% else %}untouched{% endif %}"
+            data-verdict="{{ problem.best_verdict }}">
+          <a class="problem-card"
+             href="/problems/{{ problem.slug }}"
+             title="{% if problem.best_verdict %}{{ problem.best_verdict }} — {{ problem.title }}{% else %}{{ problem.title }} (não tentado){% endif %}"
+             aria-label="{{ problem.title }} — tópico {{ problem.topic_name }}">
+            <span class="problem-card-title">{{ problem.title }}</span>
+            <span class="problem-card-meta">
+              <span class="problem-card-topic">{{ problem.topic_name }}</span>
+              <span class="problem-card-difficulty" aria-label="difficulty {{ problem.difficulty }}">
+                {% for i in range(problem.difficulty) %}★{% endfor %}{% for i in range(5 - problem.difficulty) %}☆{% endfor %}
+              </span>
+              {% if problem.best_verdict == 'AC' %}
+                <span class="problem-card-badge solved" aria-label="resolvido">AC</span>
+              {% elif problem.best_verdict in ('WA', 'RE', 'TLE') %}
+                <span class="problem-card-badge status-failed" aria-label="tentativa com erro">{{ problem.best_verdict }}</span>
+              {% elif problem.best_verdict %}
+                <span class="problem-card-badge status-error" aria-label="compilação falhou">{{ problem.best_verdict }}</span>
+              {% endif %}
+            </span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}
