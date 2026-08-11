@@ -879,106 +879,150 @@ a:hover {
 }
 
 /* ------------------------------------------------------------------
- * Submission result card
+ * Submission result MODAL
  * ------------------------------------------------------------------ */
 
-.submission-result {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 1rem;
-  align-items: start;
-  padding: 1.25rem 1.5rem;
-  margin-top: 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--color-card-border);
-  background: var(--color-card);
-  font-size: 0.95rem;
+/* Body scroll lock while modal is open */
+body.submission-modal-open {
+  overflow: hidden;
 }
 
-.submission-result--ac      { border-color: #2ea043; background: linear-gradient(180deg, rgba(46,160,67,0.10), transparent); }
-.submission-result--wa      { border-color: #d29922; background: linear-gradient(180deg, rgba(210,153,34,0.10), transparent); }
-.submission-result--tle     { border-color: #d29922; background: linear-gradient(180deg, rgba(210,153,34,0.10), transparent); }
-.submission-result--re      { border-color: #f85149; background: linear-gradient(180deg, rgba(248,81,73,0.10), transparent); }
-.submission-result--ce      { border-color: #f85149; background: linear-gradient(180deg, rgba(248,81,73,0.10), transparent); }
-.submission-result--missing { border-color: var(--color-card-border); }
+/* Overlay container — covers viewport, centered flexbox */
+.submission-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: submission-modal-fade 0.18s ease-out;
+}
 
-.submission-icon {
+@keyframes submission-modal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Dark translucent backdrop, click to dismiss */
+.submission-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 17, 23, 0.78);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+/* The card itself — centered, contained */
+.submission-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  background: var(--color-card, #161b22);
+  border: 1px solid var(--color-card-border, #30363d);
+  border-radius: 12px;
+  padding: 2rem 1.75rem 1.5rem 1.75rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  animation: submission-modal-zoom 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+@keyframes submission-modal-zoom {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* Verdict-specific card border + glow (subtle) */
+.submission-modal[data-verdict="ac"]  .submission-modal-card { border-color: #2ea04366; box-shadow: 0 0 0 1px #2ea04333, 0 8px 32px rgba(0,0,0,0.4); }
+.submission-modal[data-verdict="wa"]  .submission-modal-card { border-color: #d2992266; box-shadow: 0 0 0 1px #d2992233, 0 8px 32px rgba(0,0,0,0.4); }
+.submission-modal[data-verdict="tle"] .submission-modal-card { border-color: #d2992266; box-shadow: 0 0 0 1px #d2992233, 0 8px 32px rgba(0,0,0,0.4); }
+.submission-modal[data-verdict="re"]  .submission-modal-card { border-color: #f8514966; box-shadow: 0 0 0 1px #f8514933, 0 8px 32px rgba(0,0,0,0.4); }
+.submission-modal[data-verdict="ce"]  .submission-modal-card { border-color: #f8514966; box-shadow: 0 0 0 1px #f8514933, 0 8px 32px rgba(0,0,0,0.4); }
+.submission-modal[data-verdict="missing"] .submission-modal-card { border-color: var(--color-card-border, #30363d); }
+
+/* Icon — larger in modal context */
+.submission-modal-card .submission-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   flex-shrink: 0;
+  margin-top: 0.5rem;
 }
 
-.submission-icon--ac  { background: rgba(46,160,67,0.18);  color: #3fb950; }
-.submission-icon--wa  { background: rgba(210,153,34,0.18); color: #d29922; }
-.submission-icon--tle { background: rgba(210,153,34,0.18); color: #d29922; }
-.submission-icon--re  { background: rgba(248,81,73,0.18);  color: #f85149; }
-.submission-icon--ce  { background: rgba(248,81,73,0.18);  color: #f85149; }
-.submission-icon--missing { background: rgba(139, 148, 158, 0.18); color: #8b949e; }
+.submission-modal-card .submission-icon--ac  { background: rgba(46,160,67,0.18);  color: #3fb950; }
+.submission-modal-card .submission-icon--wa  { background: rgba(210,153,34,0.18); color: #d29922; }
+.submission-modal-card .submission-icon--tle { background: rgba(210,153,34,0.18); color: #d29922; }
+.submission-modal-card .submission-icon--re  { background: rgba(248,81,73,0.18);  color: #f85149; }
+.submission-modal-card .submission-icon--ce  { background: rgba(248,81,73,0.18);  color: #f85149; }
+.submission-modal-card .submission-icon--missing { background: rgba(139, 148, 158, 0.18); color: #8b949e; }
 
-.submission-summary {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0;
+/* Title (verdict name) */
+.submission-modal-card .submission-title {
+  margin: 0.5rem 0 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text, #e6edf3);
 }
 
-.submission-title {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.submission-detail {
+.submission-modal-card .submission-detail {
   margin: 0;
   font-size: 0.85rem;
   color: var(--color-text-dim, #8b949e);
 }
 
-.submission-description {
-  grid-column: 1 / -1;
+/* Description (explanation) */
+.submission-modal-card .submission-description {
   margin: 0.5rem 0 0 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--color-card-border);
-  color: var(--color-text);
-  font-size: 0.9rem;
+  color: var(--color-text, #e6edf3);
+  font-size: 0.95rem;
   line-height: 1.5;
 }
 
-.submission-meta {
-  grid-column: 1 / -1;
+/* Meta (lang + runtime + verdict) */
+.submission-modal-card .submission-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 0.75rem 1.5rem;
-  margin: 0.75rem 0 0 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--color-card-border);
-  font-size: 0.85rem;
-}
-.submission-meta div {
-  display: flex;
-  flex-direction: column;
-}
-.submission-meta dt {
-  color: var(--color-text-dim, #8b949e);
-  text-transform: uppercase;
-  font-size: 0.7rem;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.15rem;
-  font-weight: 600;
-}
-.submission-meta dd {
-  margin: 0;
-  color: var(--color-text);
-  font-weight: 500;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+  margin: 1rem 0 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-card-border, #30363d);
 }
 
-.submission-dismiss {
+.submission-modal-card .submission-meta div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.submission-modal-card .submission-meta dt {
+  color: var(--color-text-dim, #8b949e);
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+}
+
+.submission-modal-card .submission-meta dd {
+  margin: 0;
+  color: var(--color-text, #e6edf3);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Dismiss button (top-right corner) */
+.submission-modal-card .submission-dismiss {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
   background: transparent;
   border: none;
   color: var(--color-text-dim, #8b949e);
@@ -988,9 +1032,40 @@ a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  align-self: start;
 }
-.submission-dismiss:hover {
+
+.submission-modal-card .submission-dismiss:hover {
   background: rgba(255,255,255,0.06);
   color: var(--color-text);
+}
+
+/* Action button (Continuar) */
+.submission-modal-actions {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.submission-modal-close {
+  width: 100%;
+  padding: 0.65rem 1.5rem;
+  background: var(--color-link, #58a6ff);
+  color: #0d1117;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.submission-modal-close:hover {
+  filter: brightness(1.1);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .submission-modal-card {
+    max-width: none;
+    width: 100%;
+  }
 }

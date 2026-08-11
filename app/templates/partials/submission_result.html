@@ -4,6 +4,11 @@
    submission form on the problem page will hx-post to the
    submit URL and hx-swap="innerHTML" into a target div.
 
+   The verdict now renders as a centered MODAL overlay (not an
+   inline card). It opens via fade-in + scale-in, dismisses via
+   X button / ESC key / backdrop click / "Continuar" button, and
+   locks the body scroll while open.
+
    Status code context: the parent route returns this template
    with HTTP 200 on a normal verdict, 404 when the problem slug
    is unknown, 400 when the language is rejected. All three
@@ -16,68 +21,115 @@
   'RE':  ('Erro de Execucao',         'alert',  'Sua solucao crashou ou levantou uma excecao nao tratada. Verifique divisao por zero, acesso a arrays fora dos limites, e argumentos de funcoes.'),
   'CE':  ('Erro de Compilacao',       'wrench', 'O compilador rejeitou seu codigo. Veja os erros acima para a linha exata e corrija a sintaxe ou os tipos.'),
 } %}
-{% set info = verdict_info.get(result.verdict, ('Desconhecido', 'help', '')) %}
-{% set verdict_name = info[0] %}
-{% set verdict_icon = info[1] %}
-{% set verdict_desc = info[2] %}
+
+{# Dismisses the open modal: removes element + unlocks body scroll. #}
+<script>
+function closeSubmissionModal() {
+  var m = document.querySelector('.submission-modal');
+  if (m) m.remove();
+  document.body.classList.remove('submission-modal-open');
+}
+</script>
 
 {% if result is none %}
-  <section class="submission-result submission-result--missing">
-    <header class="submission-header">
-      <div class="submission-icon submission-icon--missing">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 14v.01M12 6v6"/></svg>
-      </div>
-      <div class="submission-summary">
-        <h2 class="submission-title">Problema nao encontrado</h2>
-        <p class="submission-detail">slug: <code>{{ problem_slug }}</code></p>
-      </div>
+  <div class="submission-modal" data-verdict="missing"
+       role="dialog" aria-modal="true" aria-labelledby="submission-title">
+    <div class="submission-modal-backdrop" onclick="closeSubmissionModal()"></div>
+    <div class="submission-modal-card" onclick="event.stopPropagation()">
       <button type="button" class="submission-dismiss" aria-label="Fechar"
-              onclick="this.closest('.submission-result').remove()">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              onclick="closeSubmissionModal()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
       </button>
-    </header>
-  </section>
+
+      <div class="submission-icon submission-icon--missing">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 14v.01M12 6v6"/></svg>
+      </div>
+
+      <h2 class="submission-title" id="submission-title">Problema nao encontrado</h2>
+      <p class="submission-detail">slug: <code>{{ problem_slug }}</code></p>
+
+      <p class="submission-description">Verifique o endereco e tente novamente.</p>
+
+      <div class="submission-modal-actions">
+        <button type="button" class="submission-modal-close"
+                onclick="closeSubmissionModal()">Continuar</button>
+      </div>
+    </div>
+  </div>
 {% else %}
-  <section
-    class="submission-result submission-result--{{ result.verdict | lower }}"
-    data-verdict="{{ result.verdict }}"
-    data-attempt="{{ result.attempt_n }}"
-  >
-    <header class="submission-header">
-      <div class="submission-icon submission-icon--{{ result.verdict | lower }}">
-        {% if verdict_icon == 'check' %}<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-        {% elif verdict_icon == 'x' %}<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-        {% elif verdict_icon == 'clock' %}<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        {% elif verdict_icon == 'alert' %}<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
-        {% elif verdict_icon == 'wrench' %}<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-        {% else %}<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+  {% set info = verdict_info.get(result.verdict, ('Desconhecido', 'help', 'Sem detalhes disponiveis.')) %}
+  {% set verdict_name = info[0] %}
+  {% set verdict_icon = info[1] %}
+  {% set verdict_desc = info[2] %}
+  {% set verdict_lower = result.verdict | lower %}
+
+  <div class="submission-modal" data-verdict="{{ verdict_lower }}"
+       role="dialog" aria-modal="true" aria-labelledby="submission-title">
+    <div class="submission-modal-backdrop" onclick="closeSubmissionModal()"></div>
+    <div class="submission-modal-card" onclick="event.stopPropagation()">
+      <button type="button" class="submission-dismiss" aria-label="Fechar"
+              onclick="closeSubmissionModal()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+
+      <div class="submission-icon submission-icon--{{ verdict_lower }}">
+        {% if verdict_icon == 'check' %}<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        {% elif verdict_icon == 'x' %}<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        {% elif verdict_icon == 'clock' %}<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        {% elif verdict_icon == 'alert' %}<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        {% elif verdict_icon == 'wrench' %}<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        {% else %}<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
         {% endif %}
       </div>
-      <div class="submission-summary">
-        <h2 class="submission-title">{{ verdict_name }}</h2>
-        <p class="submission-detail">Tentativa #{{ result.attempt_n }} · <code>{{ result.verdict }}</code></p>
-      </div>
-      <button type="button" class="submission-dismiss" aria-label="Fechar"
-              onclick="this.closest('.submission-result').remove()">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-      </button>
-    </header>
 
-    <p class="submission-description">{{ verdict_desc }}</p>
+      <h2 class="submission-title" id="submission-title">{{ verdict_name }}</h2>
+      <p class="submission-detail">Tentativa #{{ result.attempt_n }} · <code>{{ result.verdict }}</code></p>
 
-    <dl class="submission-meta">
-      <div>
-        <dt>Linguagem</dt>
-        <dd>{{ language }}</dd>
+      <p class="submission-description">{{ verdict_desc }}</p>
+
+      <dl class="submission-meta">
+        <div>
+          <dt>Linguagem</dt>
+          <dd>{{ language }}</dd>
+        </div>
+        <div>
+          <dt>Tempo total</dt>
+          <dd>{{ result.runtime_ms }} ms</dd>
+        </div>
+        <div>
+          <dt>Veredito</dt>
+          <dd><code>{{ result.verdict }}</code></dd>
+        </div>
+      </dl>
+
+      <div class="submission-modal-actions">
+        <button type="button" class="submission-modal-close"
+                onclick="closeSubmissionModal()">Continuar</button>
       </div>
-      <div>
-        <dt>Tempo total</dt>
-        <dd>{{ result.runtime_ms }} ms</dd>
-      </div>
-      <div>
-        <dt>Veredito</dt>
-        <dd><code>{{ result.verdict }}</code></dd>
-      </div>
-    </dl>
-  </section>
+    </div>
+  </div>
 {% endif %}
+
+{# Bootstrap: scroll lock + ESC handler. Runs each time HTMX swaps this
+   partial in. Idempotent: querySelector picks the freshly-injected
+   modal; previous ESC listener is gone with the prior modal. #}
+<script>
+(function() {
+  var modal = document.querySelector('.submission-modal');
+  if (!modal) return;
+
+  document.body.classList.add('submission-modal-open');
+
+  function onEsc(e) {
+    if (e.key === 'Escape') {
+      closeSubmissionModal();
+      document.removeEventListener('keydown', onEsc);
+    }
+  }
+  document.addEventListener('keydown', onEsc);
+})();
+</script>
