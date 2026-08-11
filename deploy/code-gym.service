@@ -1,0 +1,18 @@
+[Unit]
+Description=Code-Gym FastAPI app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/code-gym/projetos/Code-Gym
+EnvironmentFile=/home/code-gym/.env
+Environment="PATH=/home/code-gym/.local/bin:/usr/bin"
+ExecStart=/home/code-gym/.local/bin/uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -58,7 +58,7 @@ _RUN_TIMEOUT_S: float = 2.5
 # RLIMIT values per ADR-0002 (sandwiched between timeout layers).
 _RLIMIT_CPU_S: int = 2
 _RLIMIT_AS_BYTES: int = 256 * 1024 * 1024  # 256 MB virtual memory
-_RLIMIT_NPROC: int = 1  # no fork bombs
+_RLIMIT_NPROC: int = 8  # allow gcc to spawn cc1plus etc.
 _RLIMIT_FSIZE_BYTES: int = 1 * 1024 * 1024  # 1 MB max file write
 
 # tmpfs-backed working dir per ADR-0002 (RAM, no disk fill).
@@ -196,8 +196,13 @@ def _run_python(
     """Execute Python source under sandbox UID + RLIMITs."""
     with tempfile.TemporaryDirectory(dir=_TMPFS_DIR) as tmp:
         work = Path(tmp)
+        # tempfile default perms are 0o700 (owner-only). Sandbox user
+        # (uid 32768) needs o+rx to enter the dir and o+r to read the
+        # source file.
+        work.chmod(0o755)
         src_path = work / _PY_SRC_NAME
         src_path.write_text(code, encoding="utf-8")
+        src_path.chmod(0o644)
 
         argv = build_python_cmd(src_path)
         stdin_bytes = stdin_str.encode("utf-8")
@@ -208,7 +213,6 @@ def _run_python(
             proc = subprocess.run(  # noqa: S603 — argv list, shell=False
                 argv,
                 input=stdin_bytes,
-                stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 timeout=_RUN_TIMEOUT_S,
@@ -255,9 +259,21 @@ def _run_cpp(
     """
     with tempfile.TemporaryDirectory(dir=_TMPFS_DIR) as tmp:
         work = Path(tmp)
+        # tempfile default perms are 0o700 (owner-only). Sandbox user
+        # (uid 32768) needs o+rx to enter and read. For C++ the
+        # linker also writes the binary here, so we need o+w (0o777
+        # with sticky bit on /tmp keeps it safe).
+        work.chmod(0o777)
         src_path = work / _CPP_SRC_NAME
         bin_path = work / _CPP_BIN_NAME
         src_path.write_text(code, encoding="utf-8")
+        src_path.chmod(0o644)
+        # Pre-create bin file as root (we own it now) so the linker
+        # just opens+truncates, instead of creating. Without this
+        # the linker's open(O_CREAT) fails because the dir perms
+        # change for sandbox isn't inherited at create-time.
+        bin_path.touch()
+        bin_path.chmod(0o666)
 
         compile_argv = build_cpp_cmd(src_path, out=bin_path)
 
@@ -292,6 +308,10 @@ def _run_cpp(
                 runtime_ms=_measure_ms(start),
                 stderr=_stderr_excerpt(compile_proc.stderr),
             )
+        # Compiled binary is owned by the sandbox uid (compile ran
+        # under preexec_fn). It needs o+x for the sandbox uid to
+        # execute it. chmod here.
+        bin_path.chmod(0o755)
 
         # Compile OK — run the binary.
         stdin_bytes = stdin_str.encode("utf-8")
@@ -301,7 +321,6 @@ def _run_cpp(
             proc = subprocess.run(  # noqa: S603 — argv list, shell=False
                 [str(bin_path)],
                 input=stdin_bytes,
-                stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 timeout=_RUN_TIMEOUT_S,
