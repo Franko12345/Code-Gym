@@ -43,3 +43,11 @@ bump_v*.py
 
 # Future cache-busted CSS directories; historical versions are force-added in the asset commit.
 app/static/css/v*/
+!app/static/css/v3/
+!app/static/css/v3/style.css
+!app/static/css/v4/
+!app/static/css/v4/style.css
+!app/static/css/v5/
+!app/static/css/v5/style.css
+!app/static/css/v6/
+!app/static/css/v6/style.css

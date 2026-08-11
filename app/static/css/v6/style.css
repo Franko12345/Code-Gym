@@ -1,0 +1,879 @@
+/* Code-Gym base stylesheet — M3.T1
+ *
+ * NeetCode-inspired dark palette (per the M3.T1 brief):
+ *   bg       #0d1117   page background
+ *   card     #161b22   sidebar + content cards
+ *   solved   #3fb950   "solved" accent (used later by problem grids)
+ *
+ * No CSS framework. Vanilla CSS only. No Tailwind, no Bootstrap.
+ *
+ * Layout: fixed left sidebar (~200px) + scrolling main content.
+ * No mobile breakpoints yet (per ADR-0004 — desktop-first MVP).
+ */
+
+:root {
+  --color-bg: #0d1117;
+  --color-card: #161b22;
+  --color-card-border: #30363d;
+  --color-solved: #3fb950;
+  --color-text: #c9d1d9;
+  --color-text-muted: #8b949e;
+  --color-link: #58a6ff;
+  --color-link-hover: #79c0ff;
+  --sidebar-width: 200px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sidebar                                                             */
+/* ------------------------------------------------------------------ */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width);
+  background: var(--color-card);
+  border-right: 1px solid var(--color-card-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem 1rem 1rem;
+  border-bottom: 1px solid var(--color-card-border);
+  font-weight: 600;
+}
+
+.sidebar-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--color-solved);
+  color: var(--color-bg);
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-brand-text {
+  color: var(--color-text);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.5rem;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 0.6rem 1rem;
+  color: var(--color-text);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  background: transparent;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-link-hover);
+  border-left-color: var(--color-link);
+}
+
+.sidebar-link:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: -2px;
+}
+
+.sidebar-logout {
+  margin: 0;
+  padding: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Main content                                                        */
+/* ------------------------------------------------------------------ */
+
+.content {
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+  min-height: 100%;
+  background: var(--color-bg);
+}
+
+.content h1,
+.content h2,
+.content h3 {
+  color: var(--color-text);
+  margin-top: 0;
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ------------------------------------------------------------------ */
+/* Utility — "solved" accent (used by M3.T2/T3 problem grids)          */
+/* ------------------------------------------------------------------ */
+
+.solved {
+  color: var(--color-solved);
+}
+
+.solved-badge {
+  display: inline-block;
+  background: var(--color-solved);
+  color: var(--color-bg);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ */
+/* Roadmap topic grid (M3.T2)                                         */
+/*                                                                    */
+/* NeetCode-style responsive grid of cards. Each card carries a       */
+/* header (topic name + OBI phase), a horizontal progress bar, and a  */
+/* footer with "solved / total" + percentage.                         */
+/* ------------------------------------------------------------------ */
+
+.topic-grid {
+  list-style: none;
+  margin: 1.5rem 0 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.topic-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 8px;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.topic-card:hover {
+  border-color: var(--color-link);
+  transform: translateY(-1px);
+}
+
+.topic-card-link {
+  display: block;
+  padding: 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.topic-card-link:hover {
+  text-decoration: none;
+}
+
+.topic-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.topic-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.topic-card-phase {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-link);
+  background: rgba(88, 166, 255, 0.1);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+/* Progress bar — same component used in M3.T1 utility tests; reused
+ * here so the CSS class is stable across pages. */
+.progress-bar {
+  position: relative;
+  height: 8px;
+  background: var(--color-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-card-border);
+}
+
+.progress-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--color-solved);
+  /* Smooth width transitions when progress changes after a submission. */
+  transition: width 240ms ease;
+}
+
+.topic-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.progress-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-count.solved {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.progress-percent {
+  font-weight: 600;
+  color: var(--color-solved);
+  font-variant-numeric: tabular-nums;
+}
+
+.content-subtitle {
+  margin-top: 0;
+  color: var(--color-text-muted);
+}
+
+.empty-state {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--color-card);
+  border: 1px dashed var(--color-card-border);
+  border-radius: 8px;
+  color: var(--color-text-muted);
+}
+
+/* ------------------------------------------------------------------ */
+/* Profile grid (M3.T3)                                              */
+/*                                                                   */
+/* One card per problem, grouped by topic. Card colours come from   */
+/* the per-problem best-verdict classification in app/profile/service:*/
+/*                                                                   */
+/*   problem-card--solved    green  (any AC)                         */
+/*   problem-card--failed    red    (WA/RE/TLE without AC)           */
+/*   problem-card--error     yellow (CE — attempted but never ran)   */
+/*   problem-card--untouched gray   (no submissions)                  */
+/*                                                                   */
+/* The class names below intentionally REUSE existing tokens from     */
+/* the utility block above (.solved = green) so a future global      */
+/* re-theme only touches one place. The status-failed and status-    */
+/* error modifiers are new and live next to the existing tokens.    */
+/* ------------------------------------------------------------------ */
+
+:root {
+  /* Profile grid colour palette (M3.T3).
+   * Reuses --color-solved (green) from the M3.T1 utility block.
+   * Red and yellow are added here for the failure buckets. */
+  --color-failed: #f85149;
+  --color-error:  #d29922;
+  --color-untouched: #6e7681;
+}
+
+.profile-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-card-border);
+}
+
+.profile-display-name {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.profile-email {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+.profile-topic {
+  margin-top: 2rem;
+}
+
+.profile-topic-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.problem-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+
+.problem-grid-item {
+  margin: 0;
+  padding: 0;
+}
+
+.problem-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-card-border);
+  background: var(--color-card);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: border-color 120ms ease, transform 120ms ease;
+  min-height: 64px;
+}
+
+.problem-card:hover {
+  border-color: var(--color-link);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.problem-card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  /* Truncate long titles to a single line so the grid stays tidy. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.problem-card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.problem-card-difficulty {
+  color: var(--color-text-muted);
+  letter-spacing: 1px;
+}
+
+.problem-card-badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--color-card-border);
+  color: var(--color-text);
+}
+
+/* Per-status colours. ``.solved`` already exists in the utility block
+ * above and renders as --color-solved (green). The other three are
+ * new and added here. */
+
+.problem-card--solved {
+  border-color: var(--color-solved);
+  background: rgba(63, 185, 80, 0.08);
+}
+
+.problem-card--solved .solved {
+  background: var(--color-solved);
+  color: var(--color-bg);
+}
+
+.problem-card--failed {
+  border-color: var(--color-failed);
+  background: rgba(248, 81, 73, 0.08);
+}
+
+.problem-card--failed .status-failed {
+  background: var(--color-failed);
+  color: var(--color-bg);
+}
+
+.problem-card--error {
+  border-color: var(--color-error);
+  background: rgba(210, 153, 34, 0.08);
+}
+
+.problem-card--error .status-error {
+  background: var(--color-error);
+  color: var(--color-bg);
+}
+
+.problem-card--untouched {
+  border-color: var(--color-untouched);
+  background: var(--color-card);
+  opacity: 0.65;
+}
+
+.untouched {
+  color: var(--color-untouched);
+}
+
+/* ------------------------------------------------------------------ */
+/* Problem page (M4.T5)                                              */
+/*                                                                   */
+/* Two-column layout: statement + examples on the left, CodeMirror   */
+/* editor + language select + submit button on the right. The        */
+/* editor is the one place where the page deviates from "pure HTML +  */
+/* HTMX" (ADR-0004); the layout itself stays vanilla CSS.             */
+/* ------------------------------------------------------------------ */
+
+.problem-page {
+  display: block;
+}
+
+.problem-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-card-border);
+}
+
+.problem-topic {
+  margin: 0 0 0.25rem 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.problem-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.problem-difficulty {
+  margin: 0.5rem 0 0 0;
+  color: var(--color-link);
+  letter-spacing: 2px;
+  font-size: 0.9rem;
+}
+
+.problem-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  /* Per ADR-0004 the MVP is desktop-first; this breakpoint only
+     prevents the layout from becoming unreadable on a narrow
+     window. A future ticket can own responsive design properly. */
+  .problem-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.problem-statement {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.problem-statement-body p {
+  margin: 0 0 0.75rem 0;
+  line-height: 1.55;
+}
+
+.problem-examples-title {
+  margin: 1.25rem 0 0.5rem 0;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+}
+
+.problem-examples {
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+  list-style: decimal;
+}
+
+.problem-example {
+  margin-bottom: 0.75rem;
+}
+
+.problem-example-io {
+  margin: 0.25rem 0;
+}
+
+.problem-example-label {
+  display: inline-block;
+  min-width: 70px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+}
+
+.problem-example-block {
+  margin: 0.15rem 0 0 0;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: ui-monospace, "SFMono-Regular", "Consolas", monospace;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.problem-example-explanation {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.problem-editor-pane {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.problem-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.problem-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.problem-language-label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.problem-language {
+  flex: 0 0 auto;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+}
+
+/* The hidden <textarea name="code"> — CodeMirror replaces this
+ * visually with a .CodeMirror div, but the element still exists
+ * in the DOM so the M4.T4 Form('code') binding sees it on submit.
+ * No-JS fallback: the textarea is visible and functional. */
+.problem-code-source {
+  /* The textarea is the no-JS fallback. When CodeMirror 5 takes
+   * over (client-side JS), it injects a .CodeMirror div BEFORE the
+   * textarea and sets `style="display: none"` on the textarea.
+   * That inline style beats this class rule, so the textarea is
+   * hidden when CM is in charge. Users without JS see the textarea
+   * normally (no inline display:none is applied). */
+  width: 100%;
+  min-height: 320px;
+  padding: 0.6rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  font-family: ui-monospace, "SFMono-Regular", "Consolas", monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+/* When CodeMirror 5 has initialized on the textarea, it inserts a
+ * .CodeMirror div immediately BEFORE the textarea in the DOM and
+ * also applies inline `style="display: none"` on the textarea. The
+ * CSS rule above (display: block) wins on specificity, so both the
+ * editor and the raw textarea render side-by-side and the textarea's
+ * text bleeds out — the editor appears uneditable. Hide the textarea
+ * whenever its sibling .CodeMirror exists. Inline-style defence: also
+ * hide if the inline style already says display:none (no-JS users who
+ * only got the inline style and never the CM instance — harmless). */
+
+
+.problem-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.problem-submit {
+  background: var(--color-solved);
+  color: var(--color-bg);
+  border: none;
+  border-radius: 4px;
+  padding: 0.55rem 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+}
+
+.problem-submit:hover {
+  filter: brightness(1.08);
+}
+
+.problem-submit:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.problem-submission-result {
+  /* Verdict card lands here as a HTMX swap (innerHTML).
+     The partial (partials/submission_result.html) brings its
+     own classes; this container just provides spacing. */
+  margin-top: 0.5rem;
+}
+
+.problem-not-found {
+  max-width: 480px;
+  margin: 4rem auto;
+  text-align: center;
+}
+
+.problem-not-found h1 {
+  margin-bottom: 0.5rem;
+}
+
+
+/* ========================================================================
+   UI/UX polish — problems filter form, problem cards, results summary
+   (M4.T6 follow-up).
+   Gold standard: .topic-card on /roadmap. These rules harmonize the
+   /problems and /u/{user} pages with the same visual language.
+   ======================================================================== */
+
+.problems-list-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-card-border);
+}
+
+.problems-filter-form {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0 1.5rem 0;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.problems-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 180px;
+}
+
+.problems-filter-field span {
+  font-size: 0.8rem;
+  color: var(--color-text-dim, #8b949e);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.problems-filter-field input,
+.problems-filter-field select {
+  padding: 0.5rem 0.7rem;
+  background: var(--color-card, #161b22);
+  color: var(--color-text, #e6edf3);
+  border: 1px solid var(--color-card-border, #30363d);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.problems-filter-field input:focus {
+  outline: 2px solid var(--color-link, #58a6ff);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.problems-filter-button {
+  padding: 0.5rem 1.2rem;
+  background: var(--color-link, #58a6ff);
+  color: #0d1117;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.problems-filter-button:hover {
+  filter: brightness(1.1);
+}
+
+.problems-filter-clear {
+  padding: 0.5rem 0.8rem;
+  background: transparent;
+  color: var(--color-text-dim, #8b949e);
+  border: 1px solid var(--color-card-border, #30363d);
+  border-radius: 4px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.problem-card {
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.problem-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-link, #58a6ff);
+}
+
+.problem-card-link {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  padding: 0.75rem 1rem;
+}
+
+.problem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.problem-grid-item {
+  list-style: none;
+}
+
+.problems-results-summary {
+  margin: 0.5rem 0 1rem 0;
+  color: var(--color-text-dim, #8b949e);
+  font-size: 0.9rem;
+}
+
+.problems-results-summary code {
+  background: var(--color-card, #161b22);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+}
+
+/* ------------------------------------------------------------------
+ * Problem page — code blocks
+ * ------------------------------------------------------------------
+ * Both the example I/O blocks (.problem-example-block) and the
+ * no-JS textarea fallback (.problem-code-source) render <pre><code>
+ * or just <pre> markup. Browsers default <pre> to text-align: start
+ * (left in LTR), but a parent rule with text-align: center can
+ * override that. Force left-align explicitly so the code never
+ * sits awkwardly in the middle of its container.
+ *
+ * Also make .problem-code-source a proper block of code when
+ * displayed (the textarea fallback): full-width, fixed min height,
+ * monospace, no-wrap so each line of source stays on one row. */
+
+
+
+/* ------------------------------------------------------------------
+ * Problem page — code blocks
+ * ------------------------------------------------------------------
+ * Both the example I/O blocks (.problem-example-block) and the
+ * no-JS textarea fallback (.problem-code-source) render <pre><code>
+ * or just <pre> markup. Browsers default <pre> to text-align: start
+ * (left in LTR), but a parent rule with text-align: center can
+ * override that. Force left-align explicitly so the code never
+ * sits awkwardly in the middle of its container.
+ *
+ * Also make .problem-code-source a proper block of code when
+ * displayed (the textarea fallback): full-width, fixed min height,
+ * monospace, no-wrap so each line of source stays on one row. */
+
+
+
+
+/* Fix the editor: ensure CodeMirror can hide the textarea cleanly.
+ * CodeMirror 5 applies inline style="display: none" on the textarea
+ * after initializing; that wins specificity against any class rule.
+ * We do NOT enforce display: block on .problem-code-source — let CM
+ * decide. We only enforce left-align and a block-of-code feel for
+ * the no-JS fallback path (where inline style never gets set). */
+
+.problem-example-block,
+.problem-code-source {
+  text-align: left !important;
+  width: 100%;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Block-level for the example-block (the static examples never get
+ * an inline display:none, so they need explicit block display). */
+.problem-example-block {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  color: var(--color-text);
+}
+
+.problem-example-block code,
+.problem-code-source {
+  font-family: ui-monospace, \"SFMono-Regular\", \"Consolas\", \"Liberation Mono\", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
