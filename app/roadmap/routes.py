@@ -2,23 +2,28 @@
 
 Exposes ``GET /roadmap`` which:
 
-- 302 redirects to ``/login`` when no valid session cookie is present.
+- 302 redirects to ``/login`` when no valid session is present.
 - Renders ``app/templates/roadmap.html`` (which extends ``base.html``)
   with one card per topic + a NeetCode-style progress bar.
 
 Auth seam
 ---------
-The cookie name is ``cg_user`` and its value is the user's email —
-plain text, NOT signed. This is a deliberate, documented shortcut:
-M1.T2 (JWT cookie middleware) lands later and the JWT-decoded
-``current_user`` dependency will replace this local one. The route
-signature stays identical; only ``current_user`` body changes.
+Auth is provided by ``AuthMiddleware`` (M1.T2), which reads the
+``cg_session`` JWT cookie and exposes the resolved user on
+``request.state.user`` (an ``app.auth.middleware.UserView``).
 
-The brief explicitly allows this: "If M1.T2 (JWT middleware) is not
-yet merged in this branch, you'll need to integrate the middleware
-locally OR test with a manually-injected cookie. Either is fine;
-document the choice." We chose **manually-injected cookie** because
-it has the smallest diff and zero overlap with M1.T2's scope.
+``current_user`` here is a thin wrapper:
+
+1.  Read ``request.state.user`` (the canonical path — populated by
+    the middleware on every request). If non-None, return it wrapped
+    as ``CurrentUser``.
+2.  Fallback: read the legacy ``cg_user`` plain-text email cookie.
+    Kept as a transitional seam so in-flight curl/dev scripts that
+    were written before the JWT middleware landed keep working. The
+    legacy cookie is **dead in production** — ``/login`` (M1.T4)
+    only issues ``cg_session`` — but accepting it here means we
+    don't break callers mid-migration. New code should rely on the
+    middleware path (1).
 """
 
 from __future__ import annotations
@@ -57,9 +62,10 @@ def _templates() -> Jinja2Templates:
 # Auth seam
 # ---------------------------------------------------------------------------
 
-# Cookie name. Pinned as a module constant so tests + future JWT
-# middleware can reference it without string drift.
-SESSION_COOKIE: str = "cg_user"
+# Legacy plain-text email cookie. Kept private — it is NOT a supported
+# auth path; the canonical path is the JWT cookie read by AuthMiddleware.
+# See the module docstring for why it still exists as a fallback.
+_LEGACY_EMAIL_COOKIE: str = "cg_user"
 
 # Login route — the redirect target for anonymous requests. M3.T2
 # doesn't own this route; it just needs the URL to point at. The
@@ -70,9 +76,11 @@ LOGIN_PATH: str = "/login"
 class CurrentUser(BaseModel):
     """Minimal user payload injected into request handlers via ``Depends``.
 
-    Field shape mirrors what M1.T2 will eventually decode from the
-    JWT — id + email + display_name. Keep this stable so swapping the
-    dep body later is a no-op for the handlers.
+    Field shape mirrors what ``AuthMiddleware`` populates on
+    ``request.state.user`` (an ``app.auth.middleware.UserView``): id +
+    email + display_name. Kept here so the route signature is
+    unchanged when we swap the auth seam again — handlers always
+    receive a ``CurrentUser``.
     """
 
     id: int
@@ -80,14 +88,48 @@ class CurrentUser(BaseModel):
     display_name: Optional[str] = None
 
 
-def current_user(request: Request) -> Optional[CurrentUser]:
-    """Resolve the current user from the ``cg_user`` cookie.
+def _wrap(user: object) -> Optional[CurrentUser]:
+    """Adapt a ``request.state.user`` value (``UserView`` or ``None``)
+    into the ``CurrentUser`` shape the handlers consume.
 
-    Returns None if the cookie is missing or the email doesn't exist
-    in the ``users`` table. Callers that need a hard auth gate
-    redirect to ``LOGIN_PATH`` on None.
+    Returns ``None`` when the input is ``None``; returns a
+    ``CurrentUser`` otherwise. Centralised so the lookup logic in
+    ``current_user`` stays readable.
     """
-    email = request.cookies.get(SESSION_COOKIE)
+    if user is None:
+        return None
+    # UserView is a frozen dataclass with id/email/display_name —
+    # structurally identical to CurrentUser, so attribute copy is safe.
+    return CurrentUser(
+        id=int(getattr(user, "id")),
+        email=str(getattr(user, "email")),
+        display_name=getattr(user, "display_name", None),
+    )
+
+
+def current_user(request: Request) -> Optional[CurrentUser]:
+    """Resolve the current user.
+
+    Canonical path (M1.T2 middleware): ``request.state.user`` is set
+    by ``AuthMiddleware`` from the ``cg_session`` JWT cookie. If it
+    is non-None, that's the answer.
+
+    Legacy fallback: the ``cg_user`` plain-text email cookie, which
+    M3.T2 originally relied on before the JWT middleware existed.
+    Kept so dev / migration callers don't break in flight. Returns
+    ``None`` if neither path yields a valid user — callers that need
+    a hard auth gate redirect to ``LOGIN_PATH`` on ``None``.
+    """
+    # 1. Canonical: what the middleware computed.
+    state_user = getattr(request.state, "user", None)
+    wrapped = _wrap(state_user)
+    if wrapped is not None:
+        return wrapped
+
+    # 2. Legacy fallback: plain-text email cookie. Only consulted
+    #    when the middleware saw no JWT — i.e. the visitor is either
+    #    anonymous or relying on the pre-M1.T2 manual cookie seam.
+    email = request.cookies.get(_LEGACY_EMAIL_COOKIE)
     if not email:
         return None
     with get_connection(DEFAULT_DB_PATH) as conn:
@@ -159,7 +201,6 @@ async def roadmap(
 
 __all__: Iterable[str] = (
     "LOGIN_PATH",
-    "SESSION_COOKIE",
     "CurrentUser",
     "current_user",
     "router",
