@@ -31,7 +31,7 @@
     <ul class="topic-grid">
       {% for topic in topics %}
         <li class="topic-card">
-          <a class="topic-card-link" href="#" aria-label="Abrir tópico {{ topic.name }}">
+          <a class="topic-card-link" href="/problems?topic={{ topic.slug }}" aria-label="Abrir tópico {{ topic.name }}">
             <header class="topic-card-header">
               <h2 class="topic-card-title">{{ topic.name }}</h2>
               {% if topic.obi_phase %}
