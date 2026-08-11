@@ -34,3 +34,12 @@ data/
 build/
 dist/
 *.egg-info/
+
+# Deploy hotfix scratch files
+*.bak
+fix_*.py
+bump_v*.py
+*scratch*.py
+
+# Future cache-busted CSS directories; historical versions are force-added in the asset commit.
+app/static/css/v*/
