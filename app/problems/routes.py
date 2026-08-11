@@ -150,7 +150,18 @@ def _get_problem_for_page(
         try:
             parsed = json.loads(raw)
             if isinstance(parsed, list):
-                examples = [e for e in parsed if isinstance(e, dict)]
+                # Mapped from YAML schema (stdin/stdout) to template-friendly names
+                # (input/output). The detail template uses ex.input / ex.output
+                # so we normalise here to keep the template readable.
+                examples = [
+                    {
+                        "input": e.get("stdin", ""),
+                        "output": e.get("stdout", ""),
+                        "explanation": e.get("explanation", ""),
+                    }
+                    for e in parsed
+                    if isinstance(e, dict)
+                ]
         except json.JSONDecodeError:
             # Malformed examples_json: render the page without examples
             # rather than 500 — a future ticket can validate the seed.
